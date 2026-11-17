@@ -1,0 +1,55 @@
+# GitHub Actions workflow: rebuilds the data every day and publishes the site.
+# On GitHub this file must live at: .github/workflows/daily.yml
+name: Daily update
+
+on:
+  schedule:
+    - cron: "17 11 * * *"   # every day at 11:17 UTC (early morning in New York)
+  workflow_dispatch:         # lets you start it by hand from the Actions tab
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  NBA_CURRENT_SEASON: "2027"   # 2027 = 2026-27. Raise by one when a new season starts.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::hoopR
+            any::dplyr
+            any::tidyr
+            any::jsonlite
+
+      - name: Run the pipeline for every league size
+        run: bash run_all.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

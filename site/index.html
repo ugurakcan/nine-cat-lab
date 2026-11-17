@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nine Cat Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a scoreboard-style header, one dense working table per view, controls in a single rail above it. */
+:root {
+  --bg: #f3f4f1;
+  --surface: #ffffff;
+  --ink: #16202b;
+  --muted: #5f6b76;
+  --line: #d9ddd6;
+  --accent: #d2571c;
+  --pos: #1f8a70;
+  --neg: #c2413a;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --surface: #19212a; --ink: #e8ece8; --muted: #94a0aa; --line: #2b3641;
+    --accent: #f08a4b; --pos: #3fbf9c; --neg: #ef7068; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #19212a; --ink: #e8ece8; --muted: #94a0aa; --line: #2b3641;
+  --accent: #f08a4b; --pos: #3fbf9c; --neg: #ef7068; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 16px 48px; }
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 24px; padding: 22px 0 14px; border-bottom: 2px solid var(--ink); }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: .01em; text-transform: uppercase; }
+.brand span { color: var(--accent); }
+.tagline { color: var(--muted); max-width: 60ch; }
+.league { margin-left: auto; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px; }
+.stamp { color: var(--muted); font-size: 12px; text-align: right; align-self: center; }
+body.loading .view { opacity: .45; pointer-events: none; }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 16px; }
+nav.tabs a { font-family: var(--font-display); font-weight: 600; font-size: 18px; text-transform: uppercase; letter-spacing: .03em;
+  text-decoration: none; color: var(--muted); padding: 6px 14px; border: 1px solid transparent; border-radius: 4px; }
+nav.tabs a:hover { color: var(--ink); border-color: var(--line); }
+nav.tabs a[aria-current="page"] { color: var(--surface); background: var(--ink); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, th:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section.view { display: none; }
+section.view.on { display: block; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 24px; text-transform: uppercase; letter-spacing: .02em; margin: 0 0 4px; text-wrap: balance; }
+p.lede { margin: 0 0 14px; color: var(--muted); max-width: 72ch; }
+.rail { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin-bottom: 12px; }
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label, .field .lab { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+select, input[type="text"], input[type="number"] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 32px; }
+input[type="text"] { min-width: 180px; }
+input[type="number"] { width: 72px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; color: var(--muted); background: transparent; border: 0; padding: 6px 10px; min-height: 30px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.check { display: flex; align-items: center; gap: 6px; min-height: 32px; }
+.count { color: var(--muted); font-size: 12px; margin-left: auto; align-self: center; }
+.tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 8px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+thead th { position: sticky; top: 0; background: var(--surface); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 2px solid var(--ink); }
+thead th.sortable { cursor: pointer; user-select: none; }
+thead th.sortable:hover { color: var(--ink); }
+thead th[aria-sort="descending"]::after { content: " ▾"; color: var(--accent); }
+thead th[aria-sort="ascending"]::after { content: " ▴"; color: var(--accent); }
+td.l, th.l { text-align: left; }
+td.rk { color: var(--muted); width: 36px; }
+td.name { font-weight: 600; }
+td.name small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+td.big { font-weight: 600; }
+td.cat { min-width: 52px; }
+td.punted { opacity: .32; }
+tbody tr:hover td { background-color: color-mix(in srgb, var(--accent) 7%, transparent); }
+.up { color: var(--pos); } .down { color: var(--neg); }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.note { color: var(--muted); font-size: 12px; margin-top: 8px; max-width: 80ch; }
+/* trade */
+.trade { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.side { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.side h3 { font-family: var(--font-display); font-size: 19px; font-weight: 600; text-transform: uppercase; margin: 0 0 8px; }
+.side .add { display: flex; gap: 6px; }
+.side .add input { flex: 1; min-width: 0; }
+button.btn { font: inherit; font-weight: 600; color: var(--surface); background: var(--ink); border: 0; border-radius: 4px; padding: 6px 12px; min-height: 32px; cursor: pointer; }
+ul.chips { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+ul.chips li { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px; }
+ul.chips li span { flex: 1; }
+ul.chips li small { color: var(--muted); }
+ul.chips button { font: inherit; color: var(--muted); background: transparent; border: 0; cursor: pointer; padding: 2px 6px; }
+ul.chips button:hover { color: var(--neg); }
+.empty { color: var(--muted); padding: 8px 0 0; }
+.verdict { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 12px 14px; margin-bottom: 14px; }
+.verdict strong { font-family: var(--font-display); font-size: 22px; font-weight: 600; text-transform: uppercase; }
+.bar { display: inline-block; width: 160px; height: 10px; position: relative; background: color-mix(in srgb, var(--muted) 14%, transparent); border-radius: 2px; vertical-align: middle; }
+.bar::before { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.bar i { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+/* categories */
+.catgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.catcard { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.catcard .hd { display: flex; align-items: baseline; justify-content: space-between; }
+.catcard .hd b { font-family: var(--font-display); font-size: 22px; font-weight: 600; }
+.catcard .hd span { font-variant-numeric: tabular-nums; font-weight: 600; }
+.catcard svg { width: 100%; height: 64px; display: block; margin-top: 6px; }
+.catcard .ax { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+.err { padding: 24px; background: var(--surface); border: 1px solid var(--neg); border-radius: 6px; }
+@media (max-width: 720px) { .trade { grid-template-columns: 1fr; } .league { margin-left: 0; } .stamp { text-align: left; } .bar { width: 90px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Nine <span>Cat</span> Lab</div>
+    <div class="tagline">Player values for 9-category head-to-head fantasy basketball, built from 25 seasons of NBA game logs.</div>
+    <div class="league">
+      <div class="field"><label for="g-teams">Teams</label><select id="g-teams"></select></div>
+      <div class="field"><label for="g-roster">Roster spots</label><select id="g-roster"></select></div>
+      <div class="stamp" id="stamp"></div>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Views">
+    <a href="#rankings">Rankings</a>
+    <a href="#projections">Projections</a>
+    <a href="#trade">Trade analyzer</a>
+    <a href="#categories">Category weights</a>
+  </nav>
+  <div id="error"></div>
+
+  <section class="view" id="v-rankings">
+    <h2>Player rankings</h2>
+    <p class="lede">Value is in percentage points of weekly matchup win probability: 12 means about 12 points more than an average rostered player. Pick a punt and values are recalculated for a team that gives that category up. Everything is computed for the league size chosen at the top, and cell shading shows the z-score against that league's rosterable pool.</p>
+    <div class="rail">
+      <div class="field"><label for="r-season">Season</label><select id="r-season"></select></div>
+      <div class="field"><label for="r-punt">Punt</label><select id="r-punt"></select></div>
+      <div class="field"><span class="lab">Z-scores</span><div class="seg" id="r-basis"><button type="button" data-v="z" aria-pressed="true">Per game</button><button type="button" data-v="z48" aria-pressed="false">Per 48 min</button></div></div>
+      <div class="field"><span class="lab">Cells show</span><div class="seg" id="r-show"><button type="button" data-v="stat" aria-pressed="true">Stats</button><button type="button" data-v="z" aria-pressed="false">Z-scores</button></div></div>
+      <div class="field"><label for="r-pos">Position</label><select id="r-pos"><option value="">All</option></select></div>
+      <div class="field"><label for="r-gp">Min games</label><input type="number" id="r-gp" min="0" value="0"></div>
+      <div class="field"><label for="r-q">Search</label><input type="text" id="r-q" placeholder="Player or team"></div>
+      <div class="count" id="r-count"></div>
+    </div>
+    <div class="tablebox"><table id="r-table"><thead></thead><tbody></tbody></table></div>
+    <p class="note">Z total is the sum of the nine category z-scores, leaving out the punted category. FG% and FT% are volume-weighted impact scores, so a low-volume shooter does not top the list. Turnovers are flipped: higher is better.</p>
+  </section>
+
+  <section class="view" id="v-projections">
+    <h2><span id="p-title"></span> projections</h2>
+    <p class="lede">A Marcel-style projection: three seasons weighted toward the most recent, pulled toward the position-group average, with an experience adjustment and separately modeled minutes. The Now column is what each player has done so far this season, so the gap flags players running hot or cold against expectation.</p>
+    <div class="rail">
+      <div class="field"><span class="lab">Show</span><div class="seg" id="p-filter"><button type="button" data-v="all" aria-pressed="true">All</button><button type="button" data-v="up" aria-pressed="false">Projected risers</button><button type="button" data-v="hot" aria-pressed="false">Ahead of projection</button><button type="button" data-v="cold" aria-pressed="false">Behind projection</button></div></div>
+      <div class="field"><label for="p-q">Search</label><input type="text" id="p-q" placeholder="Player or team"></div>
+      <div class="count" id="p-count"></div>
+    </div>
+    <div class="tablebox"><table id="p-table"><thead></thead><tbody></tbody></table></div>
+    <p class="note">Projected and current totals are sums of per-game z-scores. Early-season samples are small, so treat the gap as a prompt to look closer, not a verdict.</p>
+  </section>
+
+  <section class="view" id="v-trade">
+    <h2>Trade analyzer</h2>
+    <p class="lede">Add the players leaving and joining your roster. Each category shows the net change in z-score for your team, and the total value uses the punt you pick.</p>
+    <div class="rail">
+      <div class="field"><label for="t-src">Based on</label><select id="t-src"></select></div>
+      <div class="field"><label for="t-punt">Punt</label><select id="t-punt"></select></div>
+    </div>
+    <div class="trade">
+      <div class="side"><h3>You give</h3>
+        <form class="add" data-side="give"><input type="text" id="t-give" list="t-names" placeholder="Type a player name" aria-label="Player you give"><button class="btn" type="submit">Add</button></form>
+        <ul class="chips" id="t-give-list"></ul></div>
+      <div class="side"><h3>You get</h3>
+        <form class="add" data-side="get"><input type="text" id="t-get" list="t-names" placeholder="Type a player name" aria-label="Player you get"><button class="btn" type="submit">Add</button></form>
+        <ul class="chips" id="t-get-list"></ul></div>
+    </div>
+    <datalist id="t-names"></datalist>
+    <div class="verdict" id="t-verdict"></div>
+    <div class="tablebox"><table id="t-table"><thead></thead><tbody></tbody></table></div>
+    <p class="note">The comparison adds per-game z-scores and does not account for games played per week, injuries, or who fills an open roster spot.</p>
+  </section>
+
+  <section class="view" id="v-categories">
+    <h2>Category weights</h2>
+    <p class="lede">How often each category decides a close matchup, from simulated snake drafts played out over real weekly game logs. A higher number means winning that category more often flips the result. <span id="c-range"></span></p>
+    <div class="catgrid" id="c-grid"></div>
+    <p class="note">Scale: 1 means the category always decides the matchup, 0 means the other eight have already settled it. All nine sit in a narrow band for an average team. The gaps widen once a team commits to a build.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var D = null;
+  var CATS = ["PTS", "REB", "AST", "STL", "BLK", "3PM", "FG%", "FT%", "TO"];
+  var PUNTS = ["none", "pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"];
+  // League sizes the pipeline computes (keep in sync with run_all.sh)
+  var TEAM_OPTS = [8, 10, 12, 14, 16], ROSTER_OPTS = [10, 11, 12, 13, 14, 15, 16];
+  var L = { teams: 12, roster: 13 };
+  var ZK = ["pts", "reb", "ast", "stl", "blk", "fg3m", "fg_imp", "ft_imp", "tov"];
+  var SK = ["ppg", "rpg", "apg", "spg", "bpg", "fg3m_pg", "fg_pct", "ft_pct", "tpg"];
+  function label(season) { return (season - 1) + "-" + String(season).slice(2); }
+  // The JSON stores each table as columns; turn it into the row objects the views use
+  function unpack(raw) {
+    var P = raw.players, n = P.season.length, seasons = {}, i;
+    for (i = 0; i < n; i++) {
+      var row = { id: P.athlete_id[i], n: P.player[i], t: P.team[i], pos: P.position[i], gp: P.gp[i], mpg: P.mpg[i], pool: P.in_pool[i],
+        s: SK.map(function (k) { return P[k][i]; }),
+        z: ZK.map(function (k) { return P["z_pg_" + k][i]; }),
+        z48: ZK.map(function (k) { return P["z_p48_" + k][i]; }),
+        v: P.value_none[i] == null ? null : PUNTS.map(function (k) { return P["value_" + k][i]; }) };
+      (seasons[P.season[i]] = seasons[P.season[i]] || []).push(row);
+    }
+    var J = raw.projections, proj = [];
+    for (i = 0; i < J.athlete_id.length; i++) {
+      proj.push({ id: J.athlete_id[i], n: J.player[i], t: J.team[i], exp: J.exp[i], mpg: J.proj_mpg_adj[i],
+        z: ZK.map(function (k) { return J["pz_" + k][i]; }), tot: J.proj_total[i], last: J.total_last[i],
+        lastRank: J.rank_last[i], chg: J.change[i], rank: J.proj_rank[i] });
+    }
+    var V = raw.pivots, pivot = [];
+    for (i = 0; i < V.season_label.length; i++) {
+      pivot.push({ season: V.season_label[i], p: ["pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"].map(function (k) { return V[k][i]; }) });
+    }
+    var cur = raw.current_season;
+    return { updated: raw.updated, cur: cur, seasons: seasons, order: Object.keys(seasons).map(Number).sort(function (a, b) { return b - a; }),
+      current: seasons[cur] || [], last: seasons[cur - 1] || [], proj: proj, pivot: pivot };
+  }
+  // punt key -> index into the z arrays (same order as CATS)
+  var PUNT_CAT = { none: -1, pts: 0, reb: 1, ast: 2, stl: 3, blk: 4, fg3m: 5, fg_pct: 6, ft_pct: 7, tov: 8 };
+  var PUNT_LABEL = { none: "No punt", pts: "Punt PTS", reb: "Punt REB", ast: "Punt AST", stl: "Punt STL", blk: "Punt BLK", fg3m: "Punt 3PM", fg_pct: "Punt FG%", ft_pct: "Punt FT%", tov: "Punt TO" };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var fmt = function (v, n) { return v == null ? "" : v.toFixed(n == null ? 2 : n); };
+  var signed = function (v, n) { return v == null ? "" : (v > 0 ? "+" : "") + v.toFixed(n == null ? 2 : n); };
+
+  function heat(z) {
+    if (z == null) return "";
+    var a = Math.min(Math.abs(z), 3) / 3 * 46;
+    return "background-color:color-mix(in srgb, var(" + (z >= 0 ? "--pos" : "--neg") + ") " + a.toFixed(0) + "%, transparent)";
+  }
+  function zsum(z, puntIdx) {
+    var t = 0;
+    for (var i = 0; i < z.length; i++) if (i !== puntIdx && z[i] != null) t += z[i];
+    return t;
+  }
+  function statText(p, i) {
+    var v = p.s[i];
+    if (v == null) return "";
+    return (i === 6 || i === 7) ? (v * 100).toFixed(1) : v.toFixed(1);
+  }
+  function seg(id, onChange) {
+    var el = $(id);
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      el.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      onChange(b.dataset.v);
+    });
+  }
+  function fillPunts(sel) {
+    sel.innerHTML = PUNTS.map(function (k) { return '<option value="' + k + '">' + PUNT_LABEL[k] + "</option>"; }).join("");
+  }
+  function match(p, q) { return !q || (p.n + " " + p.t).toLowerCase().indexOf(q) >= 0; }
+
+  /* ---------- Rankings ---------- */
+  var R = { season: 0, punt: "none", basis: "z", show: "stat", pos: "", gp: 0, q: "", sort: "value", dir: -1 };
+  function renderRankings() {
+    var pi = PUNT_CAT[R.punt], vi = PUNTS.indexOf(R.punt);
+    var list = D.seasons[R.season] || D.current;
+    var rows = list.map(function (p) {
+      return { p: p, value: p.v ? p.v[vi] : null, zt: zsum(p[R.basis], pi) };
+    });
+    // rank by value over the whole season list, before filters, so rank numbers stay stable
+    rows.slice().sort(function (a, b) { return (b.value == null ? -1e9 : b.value) - (a.value == null ? -1e9 : a.value); })
+        .forEach(function (r, i) { r.rank = i + 1; });
+    rows = rows.filter(function (r) { return (!R.pos || r.p.pos === R.pos) && r.p.gp >= R.gp && match(r.p, R.q); });
+    var key = R.sort, dir = R.dir;
+    rows.sort(function (a, b) {
+      var x, y;
+      if (key === "rank") { x = a.rank; y = b.rank; }
+      else if (key === "name") { return dir * a.p.n.localeCompare(b.p.n); }
+      else if (key === "value") { x = a.value; y = b.value; }
+      else if (key === "zt") { x = a.zt; y = b.zt; }
+      else if (key === "gp") { x = a.p.gp; y = b.p.gp; }
+      else if (key === "mpg") { x = a.p.mpg; y = b.p.mpg; }
+      else { var i = +key.slice(1); x = R.show === "stat" ? a.p.s[i] : a.p[R.basis][i]; y = R.show === "stat" ? b.p.s[i] : b.p[R.basis][i]; }
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return dir * (x - y);
+    });
+    var cols = [["rank", "#", ""], ["name", "Player", "l"], ["gp", "GP", ""], ["mpg", "MPG", ""], ["value", "Value", ""], ["zt", "Z total", ""]];
+    CATS.forEach(function (c, i) { cols.push(["c" + i, c, ""]); });
+    $("r-table").tHead.innerHTML = "<tr>" + cols.map(function (c) {
+      var s = R.sort === c[0] ? ' aria-sort="' + (R.dir === -1 ? "descending" : "ascending") + '"' : "";
+      return '<th class="sortable ' + c[2] + '" tabindex="0" data-k="' + c[0] + '"' + s + ">" + c[1] + "</th>";
+    }).join("") + "</tr>";
+    $("r-table").tBodies[0].innerHTML = rows.map(function (r) {
+      var p = r.p, z = p[R.basis];
+      var cells = CATS.map(function (c, i) {
+        var txt = R.show === "stat" ? statText(p, i) : fmt(z[i]);
+        return '<td class="cat' + (i === pi ? " punted" : "") + '" style="' + heat(z[i]) + '" title="' + c + " z " + fmt(z[i]) + '">' + txt + "</td>";
+      }).join("");
+      return "<tr><td class=\"rk\">" + r.rank + '</td><td class="l name">' + esc(p.n) + "<small>" + esc(p.t) + " · " + esc(p.pos || "") + "</small></td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
+        '</td><td class="big">' + fmt(r.value) + "</td><td>" + fmt(r.zt) + "</td>" + cells + "</tr>";
+    }).join("");
+    $("r-count").textContent = rows.length + " of " + list.length + " players";
+  }
+  function headerSort(tableId, state, render) {
+    var go = function (e) {
+      var th = e.target.closest("th.sortable");
+      if (!th) return;
+      if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      var k = th.dataset.k;
+      if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = (k === "rank" || k === "name" || k === "lastRank") ? 1 : -1; }
+      render();
+    };
+    $(tableId).tHead.addEventListener("click", go);
+    $(tableId).tHead.addEventListener("keydown", go);
+  }
+
+  /* ---------- Projections ---------- */
+  var P = { filter: "all", q: "", sort: "rank", dir: 1 };
+  var nowById = {};
+  function renderProjections() {
+    var rows = D.proj.map(function (p) {
+      var c = nowById[p.id];
+      var now = c ? zsum(c.z, -1) : null;
+      return { p: p, now: now, gap: now == null ? null : now - p.tot, gp: c ? c.gp : null };
+    }).filter(function (r) {
+      if (!match(r.p, P.q)) return false;
+      if (P.filter === "up") return r.p.chg != null && r.p.chg > 0.5 && r.p.rank <= 200;
+      if (P.filter === "hot") return r.gap != null && r.gap > 1.5;
+      if (P.filter === "cold") return r.gap != null && r.gap < -1.5 && r.p.rank <= 200;
+      return true;
+    });
+    var get = function (r) {
+      var k = P.sort;
+      if (k === "rank") return r.p.rank; if (k === "tot") return r.p.tot; if (k === "mpg") return r.p.mpg;
+      if (k === "last") return r.p.last; if (k === "lastRank") return r.p.lastRank; if (k === "chg") return r.p.chg;
+      if (k === "now") return r.now; if (k === "gap") return r.gap; if (k === "exp") return r.p.exp;
+      return r.p.z[+k.slice(1)];
+    };
+    rows.sort(function (a, b) {
+      if (P.sort === "name") return P.dir * a.p.n.localeCompare(b.p.n);
+      var x = get(a), y = get(b);
+      if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+      return P.dir * (x - y);
+    });
+    var cols = [["rank", "Proj #", ""], ["name", "Player", "l"], ["exp", "Yrs", ""], ["mpg", "Proj MPG", ""], ["tot", "Proj total", ""], ["lastRank", label(D.cur - 1).slice(2) + " #", ""], ["chg", "vs " + label(D.cur - 1).slice(2), ""], ["now", "Now", ""], ["gap", "Now vs proj", ""]];
+    CATS.forEach(function (c, i) { cols.push(["c" + i, c, ""]); });
+    $("p-table").tHead.innerHTML = "<tr>" + cols.map(function (c) {
+      var s = P.sort === c[0] ? ' aria-sort="' + (P.dir === -1 ? "descending" : "ascending") + '"' : "";
+      return '<th class="sortable ' + c[2] + '" tabindex="0" data-k="' + c[0] + '"' + s + ">" + c[1] + "</th>";
+    }).join("") + "</tr>";
+    var shown = rows.slice(0, 400);
+    $("p-table").tBodies[0].innerHTML = shown.map(function (r) {
+      var p = r.p;
+      var cls = function (v) { return v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : ""; };
+      return '<tr><td class="rk">' + p.rank + '</td><td class="l name">' + esc(p.n) + "<small>" + esc(p.t || "") + "</small></td><td>" + p.exp + "</td><td>" + fmt(p.mpg, 1) +
+        '</td><td class="big">' + fmt(p.tot) + "</td><td>" + (p.lastRank == null ? "" : p.lastRank) + '</td><td class="' + cls(p.chg) + '">' + signed(p.chg) +
+        "</td><td>" + (r.now == null ? "" : fmt(r.now) + ' <small style="color:var(--muted)">' + r.gp + " gp</small>") + '</td><td class="' + cls(r.gap) + '">' + signed(r.gap) + "</td>" +
+        CATS.map(function (c, i) { return '<td class="cat" style="' + heat(p.z[i]) + '">' + fmt(p.z[i]) + "</td>"; }).join("") + "</tr>";
+    }).join("");
+    $("p-count").textContent = shown.length + " of " + D.proj.length + " players";
+  }
+
+  /* ---------- Trade ---------- */
+  var T = { src: "current", punt: "none", give: [], get: [] };
+  function pool(src) { return D[src]; }
+  function tradeRow(p, src, vi, pi) {
+    if (src === "proj") return { z: p.z, value: zsum(p.z, pi) };
+    return { z: p.z, value: p.v ? p.v[vi] : zsum(p.z, pi) };
+  }
+  function renderTrade() {
+    var src = T.src, list = pool(src), byName = {};
+    list.forEach(function (p) { byName[p.n.toLowerCase()] = p; });
+    $("t-names").innerHTML = list.map(function (p) { return '<option value="' + esc(p.n) + '">'; }).join("");
+    var pi = PUNT_CAT[T.punt], vi = PUNTS.indexOf(T.punt);
+    var unit = src === "proj" ? "z total" : "value";
+    ["give", "get"].forEach(function (side) {
+      var ps = T[side].map(function (n) { return byName[n.toLowerCase()]; });
+      $("t-" + side + "-list").innerHTML = ps.length ? ps.map(function (p, i) {
+        if (!p) return '<li><span>' + esc(T[side][i]) + ' <small>no data in this view</small></span><button type="button" data-side="' + side + '" data-i="' + i + '" aria-label="Remove">✕</button></li>';
+        var r = tradeRow(p, src, vi, pi);
+        return "<li><span><b>" + esc(p.n) + "</b> <small>" + esc(p.t || "") + " · " + unit + " " + fmt(r.value) + '</small></span><button type="button" data-side="' + side + '" data-i="' + i + '" aria-label="Remove ' + esc(p.n) + '">✕</button></li>';
+      }).join("") : '<li class="empty" style="border:0;padding:0">No players yet.</li>';
+    });
+    var tot = function (side) {
+      var z = [0, 0, 0, 0, 0, 0, 0, 0, 0], v = 0, n = 0;
+      T[side].forEach(function (name) {
+        var p = byName[name.toLowerCase()]; if (!p) return;
+        var r = tradeRow(p, src, vi, pi); n++;
+        r.z.forEach(function (x, i) { z[i] += x || 0; }); v += r.value || 0;
+      });
+      return { z: z, v: v, n: n };
+    };
+    var g = tot("give"), r = tot("get");
+    $("t-table").tHead.innerHTML = '<tr><th class="l">Category</th><th>You give</th><th>You get</th><th>Net</th><th class="l">Change for your team</th></tr>';
+    var wins = 0, losses = 0, body = "";
+    var maxAbs = 0.5;
+    CATS.forEach(function (c, i) { maxAbs = Math.max(maxAbs, Math.abs(r.z[i] - g.z[i])); });
+    CATS.forEach(function (c, i) {
+      var d = r.z[i] - g.z[i], punted = i === pi;
+      if (!punted && (g.n || r.n)) { if (d > 0.15) wins++; else if (d < -0.15) losses++; }
+      var w = Math.abs(d) / maxAbs * 50;
+      var bar = '<span class="bar"><i style="' + (d >= 0 ? "left:50%" : "right:50%") + ";width:" + w.toFixed(1) + "%;background:var(" + (d >= 0 ? "--pos" : "--neg") + ')"></i></span>';
+      body += "<tr" + (punted ? ' style="opacity:.4"' : "") + '><td class="l name">' + c + (punted ? " <small>punted</small>" : "") + "</td><td>" + fmt(g.z[i]) + "</td><td>" + fmt(r.z[i]) +
+        '</td><td class="' + (d > 0 ? "up" : d < 0 ? "down" : "") + '">' + signed(d) + '</td><td class="l">' + bar + "</td></tr>";
+    });
+    var dv = r.v - g.v;
+    body += '<tr><td class="l name">Total ' + unit + '</td><td class="big">' + fmt(g.v) + '</td><td class="big">' + fmt(r.v) + '</td><td class="big ' + (dv > 0 ? "up" : dv < 0 ? "down" : "") + '">' + signed(dv) + '</td><td class="l"></td></tr>';
+    $("t-table").tBodies[0].innerHTML = body;
+    var v = $("t-verdict");
+    if (!g.n && !r.n) { v.innerHTML = "<strong>Add players to both sides</strong><div>The comparison appears here.</div>"; return; }
+    var head = Math.abs(dv) < 0.25 ? "Roughly even" : dv > 0 ? "You come out ahead" : "You come out behind";
+    var slot = r.n === g.n ? "" : r.n < g.n ? " You also free " + (g.n - r.n) + " roster spot" + (g.n - r.n > 1 ? "s" : "") + ", which this total does not credit." :
+      " You take on " + (r.n - g.n) + " extra player" + (r.n - g.n > 1 ? "s" : "") + ", so someone on your roster has to go.";
+    v.innerHTML = "<strong>" + head + "</strong><div>Net " + unit + " " + signed(dv) + ". You gain in " + wins + " categor" + (wins === 1 ? "y" : "ies") + " and lose in " + losses + "." + slot + "</div>";
+  }
+  function addTrade(side, name) {
+    name = name.trim(); if (!name) return;
+    var hit = pool(T.src).filter(function (p) { return p.n.toLowerCase() === name.toLowerCase(); })[0] ||
+      pool(T.src).filter(function (p) { return p.n.toLowerCase().indexOf(name.toLowerCase()) >= 0; })[0];
+    if (!hit) return false;
+    if (T.give.concat(T.get).indexOf(hit.n) >= 0) return true;
+    T[side].push(hit.n); return true;
+  }
+
+  /* ---------- Categories ---------- */
+  function renderCategories() {
+    var pv = D.pivot, last = pv[pv.length - 1];
+    $("c-range").textContent = "Each chart runs from " + pv[0].season + " to " + last.season + ".";
+    var all = []; pv.forEach(function (s) { s.p.forEach(function (x) { all.push(x); }); });
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    var order = CATS.map(function (c, i) { return i; }).sort(function (a, b) { return last.p[b] - last.p[a]; });
+    $("c-grid").innerHTML = order.map(function (i) {
+      var W = 240, H = 64, pad = 5;
+      var pts = pv.map(function (s, k) {
+        var x = pad + k / (pv.length - 1) * (W - 2 * pad), y = pad + (1 - (s.p[i] - lo) / (hi - lo)) * (H - 2 * pad);
+        return [x, y];
+      });
+      var line = pts.map(function (p, k) { return (k ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+      var area = line + " L" + (W - pad) + " " + (H - pad) + " L" + pad + " " + (H - pad) + " Z";
+      var e = pts[pts.length - 1];
+      return '<div class="catcard"><div class="hd"><b>' + CATS[i] + "</b><span>" + last.p[i].toFixed(3) + '</span></div>' +
+        '<svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" role="img" aria-label="' + CATS[i] + " weight by season, latest " + last.p[i].toFixed(3) + '">' +
+        '<line x1="' + pad + '" x2="' + (W - pad) + '" y1="' + (H - pad) + '" y2="' + (H - pad) + '" stroke="var(--line)"/>' +
+        '<path d="' + area + '" fill="var(--accent)" opacity=".12"/><path d="' + line + '" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>' +
+        '<circle cx="' + e[0].toFixed(1) + '" cy="' + e[1].toFixed(1) + '" r="2.6" fill="var(--accent)"/></svg>' +
+        '<div class="ax"><span>' + pv[0].season + " · " + pv[0].p[i].toFixed(3) + "</span><span>" + last.season + "</span></div></div>";
+    }).join("");
+  }
+
+  /* ---------- Routing ---------- */
+  var VIEWS = ["rankings", "projections", "trade", "categories"];
+  function route() {
+    var h = (location.hash || "").slice(1);
+    if (VIEWS.indexOf(h) < 0) h = "rankings";
+    VIEWS.forEach(function (v) { $("v-" + v).classList.toggle("on", v === h); });
+    document.querySelectorAll("nav.tabs a").forEach(function (a) {
+      if (a.getAttribute("href") === "#" + h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+
+  function setData(raw) {
+    D = unpack(raw);
+    nowById = {};
+    D.current.forEach(function (p) { nowById[p.id] = p; });
+    $("stamp").innerHTML = "Data through " + esc(D.updated) + "<br>H2H most categories, 9-cat";
+    // seasons (last 5, newest first); keep the chosen one if it still exists
+    if (D.order.indexOf(R.season) < 0) R.season = D.cur;
+    $("r-season").innerHTML = D.order.map(function (y) {
+      return '<option value="' + y + '"' + (y === R.season ? " selected" : "") + ">" + label(y) + (y === D.cur ? " (in progress)" : "") + "</option>";
+    }).join("");
+    var pos = {}; D.order.forEach(function (y) { D.seasons[y].forEach(function (p) { if (p.pos) pos[p.pos] = 1; }); });
+    $("r-pos").innerHTML = '<option value="">All</option>' + Object.keys(pos).sort().map(function (k) {
+      return '<option value="' + k + '"' + (k === R.pos ? " selected" : "") + ">" + k + "</option>"; }).join("");
+    $("p-title").textContent = label(D.cur);
+    $("t-src").innerHTML = [["current", label(D.cur) + " so far"], ["proj", label(D.cur) + " projection"], ["last", label(D.cur - 1) + " full season"]].map(function (o) {
+      return '<option value="' + o[0] + '"' + (o[0] === T.src ? " selected" : "") + ">" + o[1] + "</option>"; }).join("");
+    // open the analyzer with a worked example the first time
+    if (!T.give.length && !T.get.length) {
+      var top = D.current.filter(function (p) { return p.v; }).slice().sort(function (a, b) { return b.v[0] - a.v[0]; });
+      if (top.length > 30) { T.give = [top[11].n]; T.get = [top[24].n, top[29].n]; }
+    }
+    renderRankings(); renderProjections(); renderTrade(); renderCategories();
+  }
+
+  var loadSeq = 0;
+  function load() {
+    var seq = ++loadSeq;
+    document.body.classList.add("loading");
+    $("error").innerHTML = "";
+    fetch("data/t" + L.teams + "_r" + L.roster + ".json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
+      if (seq !== loadSeq) return;
+      setData(raw);
+      document.body.classList.remove("loading");
+    }).catch(function (e) {
+      if (seq !== loadSeq) return;
+      document.body.classList.remove("loading");
+      $("error").innerHTML = '<div class="err"><b>The data for a ' + L.teams + "-team, " + L.roster + "-spot league did not load.</b> Pick another league size or reload the page. (" + esc(e.message) + ")</div>";
+    });
+  }
+
+  function bind() {
+    try { var saved = JSON.parse(localStorage.getItem("ncl-league") || "null");
+      if (saved && TEAM_OPTS.indexOf(saved.teams) >= 0 && ROSTER_OPTS.indexOf(saved.roster) >= 0) L = saved; } catch (e) {}
+    $("g-teams").innerHTML = TEAM_OPTS.map(function (v) { return '<option value="' + v + '"' + (v === L.teams ? " selected" : "") + ">" + v + "</option>"; }).join("");
+    $("g-roster").innerHTML = ROSTER_OPTS.map(function (v) { return '<option value="' + v + '"' + (v === L.roster ? " selected" : "") + ">" + v + "</option>"; }).join("");
+    var leagueChange = function () {
+      L = { teams: +$("g-teams").value, roster: +$("g-roster").value };
+      try { localStorage.setItem("ncl-league", JSON.stringify(L)); } catch (e) {}
+      load();
+    };
+    $("g-teams").addEventListener("change", leagueChange);
+    $("g-roster").addEventListener("change", leagueChange);
+    fillPunts($("r-punt")); fillPunts($("t-punt"));
+    $("r-season").addEventListener("change", function (e) { R.season = +e.target.value; renderRankings(); });
+    $("r-punt").addEventListener("change", function (e) { R.punt = e.target.value; renderRankings(); });
+    $("r-pos").addEventListener("change", function (e) { R.pos = e.target.value; renderRankings(); });
+    $("r-gp").addEventListener("input", function (e) { R.gp = +e.target.value || 0; renderRankings(); });
+    $("r-q").addEventListener("input", function (e) { R.q = e.target.value.trim().toLowerCase(); renderRankings(); });
+    seg("r-basis", function (v) { R.basis = v; renderRankings(); });
+    seg("r-show", function (v) { R.show = v; renderRankings(); });
+    headerSort("r-table", R, renderRankings);
+    seg("p-filter", function (v) { P.filter = v; if (v === "up") { P.sort = "chg"; P.dir = -1; } else if (v === "hot") { P.sort = "gap"; P.dir = -1; } else if (v === "cold") { P.sort = "gap"; P.dir = 1; } else { P.sort = "rank"; P.dir = 1; } renderProjections(); });
+    $("p-q").addEventListener("input", function (e) { P.q = e.target.value.trim().toLowerCase(); renderProjections(); });
+    headerSort("p-table", P, renderProjections);
+    $("t-src").addEventListener("change", function (e) { T.src = e.target.value; renderTrade(); });
+    $("t-punt").addEventListener("change", function (e) { T.punt = e.target.value; renderTrade(); });
+    document.querySelectorAll("form.add").forEach(function (f) {
+      f.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var inp = f.querySelector("input");
+        if (addTrade(f.dataset.side, inp.value)) { inp.value = ""; renderTrade(); } else { inp.select(); }
+      });
+    });
+    document.querySelector(".trade").addEventListener("click", function (e) {
+      var b = e.target.closest("ul.chips button"); if (!b) return;
+      T[b.dataset.side].splice(+b.dataset.i, 1); renderTrade();
+    });
+    window.addEventListener("hashchange", route); route();
+  }
+
+  bind();
+  load();
+})();
+</script>
+</body>
+</html>
