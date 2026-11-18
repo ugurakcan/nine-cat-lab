@@ -88,5 +88,16 @@ site_data <- list(
 write_json(site_data, file.path(json_dir, paste0(league_tag, ".json")),
            dataframe = "columns", auto_unbox = TRUE, na = "null", digits = NA)
 
+# ---- 6. Current-season game logs for the player card ----
+# Same for every league size, so it goes to one shared file (games.json)
+games <- game_logs %>%
+  filter(season == current_season) %>%
+  transmute(athlete_id, date = as.character(game_date), team, opponent,
+            min = round(min), pts, reb, ast, stl, blk, fg3m, fgm, fga, ftm, fta, tov) %>%
+  arrange(athlete_id, date)
+
+write_json(list(season = current_season, games = games), file.path(json_dir, "games.json"),
+           dataframe = "columns", auto_unbox = TRUE, na = "null", digits = NA)
+
 cat("Wrote", file.path(json_dir, paste0(league_tag, ".json")),
     "-", nrow(players), "player-seasons,", nrow(projections), "projections\n")
