@@ -172,6 +172,8 @@ ul.chips button:hover { color: var(--neg); }
 .catcard .hd span { font-variant-numeric: tabular-nums; font-weight: 600; }
 .catcard svg { width: 100%; height: 64px; display: block; margin-top: 6px; }
 .catcard .ax { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+footer.foot { margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.6; max-width: 90ch; }
+footer.foot a { color: var(--ink); }
 .err { padding: 24px; background: var(--surface); border: 1px solid var(--neg); border-radius: 6px; }
 @media (max-width: 720px) { .trade { grid-template-columns: 1fr; } .league { margin-left: 0; } .stamp { text-align: left; } .bar { width: 90px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -292,6 +294,15 @@ ul.chips button:hover { color: var(--neg); }
     <div class="catgrid" id="c-grid"></div>
     <p class="note">Scale: 1 means the category always decides the matchup, 0 means the other eight have already settled it. All nine sit in a narrow band for an average team. The gaps widen once a team commits to a build.</p>
   </section>
+</div>
+
+<div class="wrap" style="padding-top:0">
+  <footer class="foot">
+    Data: NBA box scores from ESPN, collected with the <a href="https://hoopr.sportsdataverse.org">hoopR</a> package by the SportsDataverse project (MIT license).
+    Values, rankings and projections are Nine Cat Lab's own calculations and may be wrong.
+    Nine Cat Lab is a free hobby project and is not affiliated with the NBA, ESPN or Yahoo.
+    Questions, ideas or a bug? Write to <a href="mailto:info@nine-cat-lab.com">info@nine-cat-lab.com</a>.
+  </footer>
 </div>
 
 <div class="modal" id="pm" hidden>
@@ -1280,6 +1291,13 @@ ul.chips button:hover { color: var(--neg); }
   bind();
   load();
 })();
+</script>
+<script data-goatcounter="https://pedrosahq.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+  // count each tab as its own page in GoatCounter (the first load is counted by count.js itself)
+  window.addEventListener("hashchange", function () {
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: location.pathname + location.hash }); } catch (e) {}
+  });
 </script>
 </body>
 </html>
