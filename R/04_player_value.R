@@ -151,6 +151,20 @@ player_contrib <- player_long %>%
   pivot_wider(names_from = cat, values_from = k, names_prefix = "k_")
 
 
+# ---- 4c. Parameters the website needs to value any per-game stat line ----
+# (season so far, last 14 days, projection): edge = (per game - pool mean) x games per week
+kparams <- player_long %>%
+  filter(season == current_season, in_pool) %>%
+  group_by(cat) %>%
+  summarise(pool_mean = mean(per_game), .groups = "drop") %>%
+  left_join(sigma, by = "cat") %>%
+  mutate(games_per_week = games_per_week,
+         fga_week       = fga_week,
+         fta_week       = fta_week,
+         lg_fg          = lg_pct$lg_fg[lg_pct$season == current_season],
+         lg_ft          = lg_pct$lg_ft[lg_pct$season == current_season])
+
+
 # ---- 5. Results ----
 # Pivot weights by single-category punt (rows = punted category, columns = category weight)
 punt_pivots %>%
@@ -195,3 +209,4 @@ saveRDS(values_wide, file.path(out_dir, "player_values.rds"))
 write.csv(values_wide, file.path(out_dir, "player_values.csv"), row.names = FALSE)
 saveRDS(punt_pivots,    file.path(out_dir, "punt_pivots.rds"))      # all 130 punt scenarios
 saveRDS(player_contrib, file.path(out_dir, "player_contrib.rds"))
+saveRDS(kparams,        file.path(out_dir, "kparams.rds"))

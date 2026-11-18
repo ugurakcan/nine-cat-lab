@@ -127,3 +127,16 @@ season_totals %>%
 # ---- 5. Save ----
 saveRDS(game_logs,     file.path(out_dir, "game_logs.rds"))
 saveRDS(season_totals, file.path(out_dir, "season_totals.rds"))
+
+
+# ---- 6. Current-season schedule (games per week for the Squad builder) ----
+# game_date is the US Eastern date of the game; "TBD" rows are NBA Cup knockout placeholders
+schedule <- load_nba_schedule(seasons = current_season) %>%
+  filter(season_type == 2, home_abbreviation != "TBD", away_abbreviation != "TBD") %>%
+  transmute(game_id,
+            date = as.Date(game_date),
+            home = home_abbreviation,
+            away = away_abbreviation) %>%
+  arrange(date)
+
+saveRDS(schedule, file.path(out_dir, "schedule.rds"))
