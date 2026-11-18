@@ -4,7 +4,7 @@ name: Daily update
 
 on:
   schedule:
-    - cron: "17 11 * * *"   # every day at 11:17 UTC (early morning in New York)
+    - cron: "7 10 * * *"   # every day at 11:17 UTC (early morning in New York)
   workflow_dispatch:         # lets you start it by hand from the Actions tab
 
 permissions:
