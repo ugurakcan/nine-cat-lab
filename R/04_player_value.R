@@ -10,8 +10,9 @@
 #
 # Units: matchup wins added per week vs an average rosterable player,
 # shown x100 as percentage points (e.g. 12 = +12% matchup win probability).
-# Punt scenarios: the punted category is treated as always lost, and the
-# pivot weights of the other 8 categories are recomputed.
+# Punt scenarios: punted categories are treated as always lost, and the
+# pivot weights of the remaining categories are recomputed. Every punt of
+# 1, 2 or 3 categories is computed (129 scenarios plus "none").
 # Requires steps 2 and 3 (step 3 must save sim_team_weeks.rds).
 # ============================================================
 
@@ -46,20 +47,38 @@ team_weeks <- readRDS(file.path(out_dir, "sim_team_weeks.rds"))
 
 
 # ---- 1. Pivot weights for each punt scenario (recent seasons) ----
-punt_pivots <- matchups %>%
+# Scenario names: "none", "ft_pct", "fg_pct+tov", "ast+blk+tov", ...
+punt_sets <- c("none",
+               cats,
+               apply(combn(cats, 2), 2, paste, collapse = "+"),
+               apply(combn(cats, 3), 2, paste, collapse = "+"))
+
+# Which categories each scenario gives up (one row per punted category)
+punt_members <- tibble(punt = punt_sets, cat = punt_sets) %>%
+  separate_rows(cat, sep = "\\+") %>%
+  filter(cat != "none") %>%
+  mutate(punted = TRUE)
+
+# Matchups with the same 9 category results are counted once (same answer, much faster)
+patterns <- matchups %>%
   filter(season %in% recent_seasons) %>%
-  select(-margin) %>%
+  count(pts, reb, ast, stl, blk, fg3m, tov, fg_pct, ft_pct, name = "n") %>%
+  mutate(pattern = row_number())
+
+punt_pivots <- patterns %>%
   pivot_longer(cols = all_of(cats), names_to = "cat", values_to = "outcome") %>%
-  crossing(punt = c("none", cats)) %>%
-  mutate(outcome = ifelse(cat == punt, -1, outcome)) %>%     # punted category always lost
-  group_by(punt, season, sim, week_start, match) %>%
+  crossing(punt = punt_sets) %>%
+  left_join(punt_members, by = c("punt", "cat")) %>%
+  mutate(punted  = !is.na(punted),
+         outcome = ifelse(punted, -1, outcome)) %>%     # punted categories always lost
+  group_by(punt, pattern) %>%
   mutate(margin = sum(outcome)) %>%
   ungroup() %>%
   mutate(others = margin - outcome,
          pivot  = (sign(others + 1) - sign(others - 1)) / 2,
-         pivot  = ifelse(cat == punt, 0, pivot)) %>%
+         pivot  = ifelse(punted, 0, pivot)) %>%
   group_by(punt, cat) %>%
-  summarise(pivot = mean(pivot), .groups = "drop")
+  summarise(pivot = weighted.mean(pivot, n), .groups = "drop")
 
 
 # ---- 2. Weekly noise per category (SD of team-vs-team weekly difference) ----
@@ -104,10 +123,11 @@ player_long <- z_table %>%
   mutate(edge = ifelse(cat == "tov", -edge, edge))   # fewer turnovers = positive edge
 
 
-# ---- 4. Value under each punt scenario ----
+# ---- 4. Value under no punt and each single-category punt ----
 values_long <- player_long %>%
   left_join(sigma, by = "cat") %>%
-  inner_join(punt_pivots, by = "cat", relationship = "many-to-many") %>%
+  inner_join(punt_pivots %>% filter(punt %in% c("none", cats)),
+             by = "cat", relationship = "many-to-many") %>%
   mutate(contribution = 100 * pivot * dnorm(0) * edge / sigma)
 
 values <- values_long %>%
@@ -122,10 +142,19 @@ values_wide <- values %>%
   pivot_wider(names_from = punt, values_from = value, names_prefix = "value_") %>%
   arrange(season, desc(value_none))
 
+# Per-category contribution before punt weighting. The website multiplies these
+# by the pivot weights of any punt combination: value = sum(pivot x k)
+player_contrib <- player_long %>%
+  left_join(sigma, by = "cat") %>%
+  mutate(k = 100 * dnorm(0) * edge / sigma) %>%
+  select(season, athlete_id, cat, k) %>%
+  pivot_wider(names_from = cat, values_from = k, names_prefix = "k_")
+
 
 # ---- 5. Results ----
-# Pivot weights by punt scenario (rows = punted category, columns = category weight)
+# Pivot weights by single-category punt (rows = punted category, columns = category weight)
 punt_pivots %>%
+  filter(punt %in% c("none", cats)) %>%
   mutate(pivot = round(pivot, 3)) %>%
   pivot_wider(names_from = cat, values_from = pivot) %>%
   select(punt, all_of(cats)) %>%
@@ -164,4 +193,5 @@ values_wide %>%
 # ---- 6. Save ----
 saveRDS(values_wide, file.path(out_dir, "player_values.rds"))
 write.csv(values_wide, file.path(out_dir, "player_values.csv"), row.names = FALSE)
-saveRDS(punt_pivots, file.path(out_dir, "punt_pivots.rds"))
+saveRDS(punt_pivots,    file.path(out_dir, "punt_pivots.rds"))      # all 130 punt scenarios
+saveRDS(player_contrib, file.path(out_dir, "player_contrib.rds"))
