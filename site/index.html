@@ -280,6 +280,7 @@ ul.chips button:hover { color: var(--neg); }
         <ul class="sq-list" id="sq-wav"></ul></div>
     </div>
     <datalist id="sq-names"></datalist>
+    <div id="sq-profile"></div>
     <div id="sq-match"></div>
     <div id="sq-waiver"></div>
     <p class="note">How this works: each player's weekly total is their per-game line times the games their team plays in the chosen week. Win chances allow for normal game-to-game swings. Every game counts, so Yahoo's daily limit of active players is not applied; players whose team has played 3 or more games without them are marked Out automatically, and you can change that with the Out box. "Value vs waiver" compares a player with the best player usually left on waivers in a league this size (zero = replacement level).</p>
@@ -1024,6 +1025,7 @@ ul.chips button:hover { color: var(--neg); }
 
     var wtxt = win.from === win.to ? win.from : mdy(win.from) + " to " + mdy(win.to);
     if (!S.mine.length) {
+      $("sq-profile").innerHTML = "";
       $("sq-match").innerHTML = '<div class="sq-head"><span class="sub">Add your players to start. Week: ' + wtxt + ".</span></div>";
       $("sq-waiver").innerHTML = ""; return;
     }
@@ -1058,6 +1060,7 @@ ul.chips button:hover { color: var(--neg); }
       html += '<div class="sq-head"><span class="sub">Add your opponent to see the matchup. Week: ' + wtxt + ", your players have " + A.games + " games.</span></div>";
     }
     $("sq-match").innerHTML = html;
+    renderProfile(ctx);
 
     // ---- waiver targets ----
     if (!S.wav.length) { $("sq-waiver").innerHTML = ""; return; }
@@ -1097,6 +1100,42 @@ ul.chips button:hover { color: var(--neg); }
           "<td>" + (r.floor == null ? "–" : signed(r.floor - repl, 0) + " · " + signed(r.ceil - repl, 0)) + "</td></tr>";
       }).join("") + "</tbody></table></div>" +
       '<p class="note">Weekly value: value vs waiver scaled by games this week (3.4 games is an average week). Value vs waiver and Last 14 days: zero is a typical waiver-wire player. Floor and ceiling: a bad game (20th percentile) and a good game (80th percentile) this season, on the same scale.</p>';
+  }
+
+  // My team on its own: category z-scores and how it stacks up against an average team in this league
+  function renderProfile(ctx) {
+    var active = S.mine.filter(function (id) { return !sqIsOut(id) && ctx.lines[id]; });
+    if (!active.length) { $("sq-profile").innerHTML = ""; return; }
+    // neutral week: every player gets an average 3.4 games, so the schedule does not colour the profile
+    var gpw = D.kp.gpw, neutral = { lines: ctx.lines, games: {} };
+    active.forEach(function (id) { neutral.games[id] = gpw; });
+    var me = sqTotals(active, neutral);
+    // an average team: the same number of players, each an average rostered player
+    var n = active.length, avg = { mu: {}, v: {}, games: n * gpw };
+    COUNT_CATS.forEach(function (c) { avg.mu[c] = n * gpw * D.kp[c].pool_mean; avg.v[c] = n * gpw * SQ.disp[c] * Math.max(D.kp[c].pool_mean, 0.05); });
+    avg.fga = me.fga; avg.fgm = me.fga * D.kp.lg_fg; avg.vfg = me.vfg;
+    avg.fta = me.fta; avg.ftm = me.fta * D.kp.lg_ft; avg.vft = me.vft;
+    var M = sqMatch(me, avg);
+    // this season's per-game z-scores, summed over the players who are playing
+    var zs = DCAT.map(function () { return 0; }), missing = 0;
+    active.forEach(function (id) { var r = nowById[id]; if (!r) { missing++; return; } r.z.forEach(function (z, i) { zs[i] += z || 0; }); });
+    var order = DCAT.map(function (c, i) { return i; }).sort(function (a, b) { return M.p[a] - M.p[b]; });
+    var weak = order.slice(0, 3).filter(function (i) { return M.p[i] < 0.35; }), strong = order.slice(-3).reverse().filter(function (i) { return M.p[i] > 0.65; });
+    var names = function (ix) { return ix.map(function (i) { return CATS[i]; }).join(", "); };
+    $("sq-profile").innerHTML = '<h2 style="margin-top:6px">My team profile</h2>' +
+      '<div class="sq-head"><span class="big ' + (M.win >= 0.5 ? "up" : "down") + '">' + Math.round(100 * M.win) + "%</span>" +
+      "<span>chance to beat an average opponent in a " + L.teams + "-team league, in a normal week</span>" +
+      '<span class="sub">' + n + " players counted · " + M.exp.toFixed(1) + " of 9 categories expected</span>" +
+      "<p>" + (strong.length ? "<b>Strengths:</b> " + names(strong) + ". " : "") + (weak.length ? "<b>Weak spots:</b> " + names(weak) + ". " : "") +
+      (weak.length >= 2 ? "If you are thinking about a punt, " + names(weak.slice(0, 2)) + " cost you the least to give up." : "") + "</p></div>" +
+      '<div class="tablebox"><table><thead><tr><th class="l">Category</th><th>Team z-score</th><th>Vs average team</th><th class="l"></th><th class="l">Status</th></tr></thead><tbody>' +
+      DCAT.map(function (c, i) {
+        var q = M.p[i], st = q > 0.65 ? ["ahead", "Strong"] : q < 0.35 ? ["behind", "Weak"] : ["toss", "Average"];
+        return '<tr><td class="l name">' + CATS[i] + '</td><td class="' + (zs[i] > 0 ? "up" : zs[i] < 0 ? "down" : "") + '">' + signed(zs[i], 1) + '</td><td class="big">' + Math.round(100 * q) + "%</td>" +
+          '<td class="l"><span class="wbar"><i style="width:' + (100 * q).toFixed(0) + '%"></i></span></td><td class="l"><span class="pill ' + st[0] + '">' + st[1] + "</span></td></tr>";
+      }).join("") + "</tbody></table></div>" +
+      '<p class="note">Team z-score adds up each player\'s per-game z-score this season (0 = what an average rostered player gives). "Vs average team" is your chance to win that category against a team of average rostered players, with every player playing an average 3.4 games, using the stats basis picked above.' +
+      (missing ? " " + missing + " of your players have too few games this season for a z-score and count as 0 in that column." : "") + "</p>";
   }
 
   function bindSquad() {
