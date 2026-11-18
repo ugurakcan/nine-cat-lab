@@ -86,6 +86,36 @@ button.plink:hover { color: var(--accent); }
 .gbox svg { width: 100%; height: auto; display: block; }
 .gbox .gsum { color: var(--muted); font-size: 12px; margin: 2px 0 6px; }
 .gbox rect.gbar:hover { opacity: .75; }
+/* squad builder */
+.sq-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+.sq-card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+.sq-card h3 { font-family: var(--font-display); font-size: 19px; font-weight: 600; text-transform: uppercase; margin: 0 0 8px; display: flex; align-items: baseline; gap: 8px; }
+.sq-card h3 small { font-family: var(--font-body); font-size: 12px; font-weight: 400; color: var(--muted); text-transform: none; }
+.sq-card h3 button { margin-left: auto; font: inherit; font-size: 12px; color: var(--muted); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+.sq-card .add { display: flex; gap: 6px; }
+.sq-card .add input { flex: 1; min-width: 0; }
+.sq-card details { margin-top: 8px; font-size: 13px; }
+.sq-card summary { cursor: pointer; color: var(--muted); }
+.sq-card textarea { width: 100%; min-height: 110px; margin-top: 6px; font: inherit; font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; }
+.sq-card .msg { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+ul.sq-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+ul.sq-list li { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; font-size: 13px; }
+ul.sq-list li.is-out { opacity: .45; }
+ul.sq-list li .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ul.sq-list li .who small { color: var(--muted); margin-left: 4px; }
+ul.sq-list li .g { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+ul.sq-list li label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 3px; cursor: pointer; }
+ul.sq-list li button.rm { font: inherit; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 2px 4px; }
+ul.sq-list li button.rm:hover { color: var(--neg); }
+.sq-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; }
+.sq-head .big { font-family: var(--font-display); font-size: 34px; font-weight: 700; line-height: 1; }
+.sq-head .sub { color: var(--muted); }
+.sq-head p { flex-basis: 100%; margin: 4px 0 0; }
+.pill.ahead { color: var(--pos); } .pill.behind { color: var(--neg); } .pill.toss { color: var(--muted); }
+.wbar { display: inline-block; width: 140px; height: 10px; position: relative; background: color-mix(in srgb, var(--neg) 22%, transparent); border-radius: 2px; vertical-align: middle; overflow: hidden; }
+.wbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--pos); }
+.wbar::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--ink); opacity: .5; }
+@media (max-width: 900px) { .sq-grid { grid-template-columns: 1fr; } }
 .mpanel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px 4px; }
 .mpanel.punted { opacity: .4; }
 .mpanel .hd { display: flex; justify-content: space-between; align-items: baseline; }
@@ -109,6 +139,8 @@ td.name small { font-weight: 400; color: var(--muted); margin-left: 6px; }
 td.big { font-weight: 600; }
 td.cat { min-width: 52px; }
 td.punted { opacity: .32; }
+.outtag { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--neg); border: 1px solid var(--neg); border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+tr.wline td { text-align: left; font-size: 12px; font-weight: 600; color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); border-top: 2px dashed var(--accent); border-bottom: 2px dashed var(--accent); padding: 6px 10px; white-space: normal; }
 tbody tr:hover td { background-color: color-mix(in srgb, var(--accent) 7%, transparent); }
 .up { color: var(--pos); } .down { color: var(--neg); }
 .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
@@ -160,6 +192,7 @@ ul.chips button:hover { color: var(--neg); }
     <a href="#rankings">Rankings</a>
     <a href="#projections">Projections</a>
     <a href="#trade">Trade analyzer</a>
+    <a href="#squad">Squad builder</a>
     <a href="#categories">Category weights</a>
   </nav>
   <div id="error"></div>
@@ -174,11 +207,12 @@ ul.chips button:hover { color: var(--neg); }
       <div class="field"><span class="lab">Cells show</span><div class="seg" id="r-show"><button type="button" data-v="stat" aria-pressed="true">Stats</button><button type="button" data-v="z" aria-pressed="false">Z-scores</button></div></div>
       <div class="field"><label for="r-pos">Position</label><select id="r-pos"><option value="">All</option></select></div>
       <div class="field"><label for="r-gp">Min games</label><input type="number" id="r-gp" min="0" value="0"></div>
+      <div class="field"><span class="lab">Injured</span><label class="check" title="Players whose team has played 3 or more games without them"><input type="checkbox" id="r-hide" checked> Hide players not playing</label></div>
       <div class="field"><label for="r-q">Search</label><input type="text" id="r-q" placeholder="Player or team"></div>
       <div class="count" id="r-count"></div>
     </div>
     <div class="tablebox"><table id="r-table"><thead></thead><tbody></tbody></table></div>
-    <p class="note">Z total is the sum of the nine category z-scores, leaving out the punted categories. FG% and FT% are volume-weighted impact scores, so a low-volume shooter does not top the list. Turnovers are flipped: higher is better.</p>
+    <p class="note">Z total is the sum of the nine category z-scores, leaving out the punted categories. FG% and FT% are volume-weighted impact scores, so a low-volume shooter does not top the list. Turnovers are flipped: higher is better. A red OUT tag means the player's team has played 3 or more games in a row without him, usually because of an injury. These players are hidden by default and do not count toward the waiver line, since injured players usually sit in IL spots.</p>
   </section>
 
   <section class="view" id="v-projections">
@@ -212,6 +246,43 @@ ul.chips button:hover { color: var(--neg); }
     <div class="verdict" id="t-verdict"></div>
     <div class="tablebox"><table id="t-table"><thead></thead><tbody></tbody></table></div>
     <p class="note">The comparison adds per-game z-scores and does not account for games played per week, injuries, or who fills an open roster spot.</p>
+  </section>
+
+  <section class="view" id="v-squad">
+    <h2>Squad builder</h2>
+    <p class="lede">Enter your roster and this week's opponent to see which categories you are likely to win. Add up to 10 waiver targets to see who would help most, and who to drop for them. Your lists are saved in this browser only.</p>
+    <div class="rail">
+      <div class="field"><label for="sq-basis">Stats based on</label><select id="sq-basis">
+        <option value="blend">Season + projection (recommended)</option>
+        <option value="season">This season so far</option>
+        <option value="last14">Last 14 days</option>
+        <option value="proj">Projection only</option>
+      </select></div>
+      <div class="field"><span class="lab">Week</span><div class="seg" id="sq-week">
+        <button type="button" data-v="rest" aria-pressed="true">Rest of this week</button>
+        <button type="button" data-v="this" aria-pressed="false">Full this week</button>
+        <button type="button" data-v="next" aria-pressed="false">Next week</button>
+      </div></div>
+      <div class="field"><span class="lab" id="sq-punt-lab">Punt (values only)</span><div class="puntbox" id="sq-punt" role="group" aria-labelledby="sq-punt-lab"></div></div>
+    </div>
+    <div class="sq-grid">
+      <div class="sq-card" data-list="mine"><h3>My team <small id="sq-mine-n"></small><button type="button" data-clear="mine">Clear</button></h3>
+        <form class="add" data-list="mine"><input type="text" list="sq-names" placeholder="Type a player name" aria-label="Add a player to my team"><button class="btn" type="submit">Add</button></form>
+        <details><summary>Paste a whole roster</summary><textarea aria-label="Paste my roster" placeholder="One player per line. Copying the roster table from Yahoo works too."></textarea><button class="btn" type="button" data-paste="mine">Add these</button><p class="msg"></p></details>
+        <ul class="sq-list" id="sq-mine"></ul></div>
+      <div class="sq-card" data-list="opp"><h3>Opponent <small id="sq-opp-n"></small><button type="button" data-clear="opp">Clear</button></h3>
+        <form class="add" data-list="opp"><input type="text" list="sq-names" placeholder="Type a player name" aria-label="Add a player to the opponent"><button class="btn" type="submit">Add</button></form>
+        <details><summary>Paste a whole roster</summary><textarea aria-label="Paste the opponent roster" placeholder="One player per line. Copying the roster table from Yahoo works too."></textarea><button class="btn" type="button" data-paste="opp">Add these</button><p class="msg"></p></details>
+        <ul class="sq-list" id="sq-opp"></ul></div>
+      <div class="sq-card" data-list="wav"><h3>Waiver targets <small id="sq-wav-n"></small><button type="button" data-clear="wav">Clear</button></h3>
+        <form class="add" data-list="wav"><input type="text" list="sq-names" placeholder="Type a player name" aria-label="Add a waiver target"><button class="btn" type="submit">Add</button></form>
+        <details><summary>Paste a list</summary><textarea aria-label="Paste waiver targets" placeholder="Up to 10 players, one per line."></textarea><button class="btn" type="button" data-paste="wav">Add these</button><p class="msg"></p></details>
+        <ul class="sq-list" id="sq-wav"></ul></div>
+    </div>
+    <datalist id="sq-names"></datalist>
+    <div id="sq-match"></div>
+    <div id="sq-waiver"></div>
+    <p class="note">How this works: each player's weekly total is their per-game line times the games their team plays in the chosen week. Win chances allow for normal game-to-game swings. Every game counts, so Yahoo's daily limit of active players is not applied; players whose team has played 3 or more games without them are marked Out automatically, and you can change that with the Out box. "Value vs waiver" compares a player with the best player usually left on waivers in a league this size (zero = replacement level).</p>
   </section>
 
   <section class="view" id="v-categories">
@@ -251,7 +322,7 @@ ul.chips button:hover { color: var(--neg); }
   function unpack(raw) {
     var P = raw.players, n = P.season.length, seasons = {}, i;
     for (i = 0; i < n; i++) {
-      var row = { id: P.athlete_id[i], n: P.player[i], t: P.team[i], pos: P.position[i], gp: P.gp[i], mpg: P.mpg[i], pool: P.in_pool[i],
+      var row = { id: P.athlete_id[i], n: P.player[i], t: P.team[i], pos: P.position[i], gp: P.gp[i], mpg: P.mpg[i], pool: P.in_pool[i], missed: P.missed ? P.missed[i] : null,
         s: SK.map(function (k) { return P[k][i]; }),
         z: ZK.map(function (k) { return P["z_pg_" + k][i]; }),
         z48: ZK.map(function (k) { return P["z_p48_" + k][i]; }),
@@ -262,11 +333,17 @@ ul.chips button:hover { color: var(--neg); }
     for (i = 0; i < J.athlete_id.length; i++) {
       proj.push({ id: J.athlete_id[i], n: J.player[i], t: J.team[i], exp: J.exp[i], mpg: J.proj_mpg_adj[i],
         z: ZK.map(function (k) { return J["pz_" + k][i]; }), tot: J.proj_total[i], last: J.total_last[i],
-        lastRank: J.rank_last[i], chg: J.change[i], rank: J.proj_rank[i] });
+        lastRank: J.rank_last[i], chg: J.change[i], rank: J.proj_rank[i], missed: J.missed ? J.missed[i] : null });
     }
     var V = raw.pivots, pivot = [];
     for (i = 0; i < V.season_label.length; i++) {
       pivot.push({ season: V.season_label[i], p: ["pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"].map(function (k) { return V[k][i]; }) });
+    }
+    // valuation parameters (pool averages, weekly noise) for any per-game line
+    var KP = raw.kparams, kp = {};
+    if (KP) {
+      KP.cat.forEach(function (c, j) { kp[c] = { pool_mean: KP.pool_mean[j], sigma: KP.sigma[j] }; });
+      kp.gpw = KP.games_per_week[0]; kp.fga_week = KP.fga_week[0]; kp.fta_week = KP.fta_week[0]; kp.lg_fg = KP.lg_fg[0]; kp.lg_ft = KP.lg_ft[0];
     }
     var U = raw.punts, punts = {};
     for (i = 0; i < U.punt.length; i++) punts[U.punt[i]] = DCAT.map(function (c) { return U[c][i]; });
@@ -274,7 +351,7 @@ ul.chips button:hover { color: var(--neg); }
     Object.keys(seasons).forEach(function (y) { seasons[y].forEach(function (p) { (byId[p.id] = byId[p.id] || {})[y] = p; }); });
     proj.forEach(function (p) { projById[p.id] = p; });
     return { updated: raw.updated, cur: cur, seasons: seasons, order: Object.keys(seasons).map(Number).sort(function (a, b) { return b - a; }),
-      current: seasons[cur] || [], last: seasons[cur - 1] || [], proj: proj, pivot: pivot, punts: punts, byId: byId, projById: projById };
+      current: seasons[cur] || [], last: seasons[cur - 1] || [], proj: proj, pivot: pivot, punts: punts, kp: kp, byId: byId, projById: projById };
   }
   // A punt is a list of display indices, e.g. [6, 8] = FG% and TO
   function puntKey(set) {
@@ -341,27 +418,43 @@ ul.chips button:hover { color: var(--neg); }
     });
     draw();
   }
+  // A player whose team has played 3+ games without him is treated as not playing (injured, suspended, benched)
+  var OUT_GAMES = 3;
+  function isOutNow(missed) { return missed != null && missed >= OUT_GAMES; }
+  function outTag(missed) { return isOutNow(missed) ? '<span class="outtag" title="Has missed his team\'s last ' + missed + ' games">out ' + missed + "</span>" : ""; }
   function plink(p) { return '<button type="button" class="plink" data-id="' + p.id + '">' + esc(p.n) + "</button>"; }
   function match(p, q) { return !q || (p.n + " " + p.t).toLowerCase().indexOf(q) >= 0; }
 
   /* ---------- Rankings ---------- */
-  var R = { season: 0, punts: [], basis: "z", show: "stat", pos: "", gp: 0, q: "", sort: "value", dir: -1 };
+  var R = { season: 0, hide: true, punts: [], basis: "z", show: "stat", pos: "", gp: 0, q: "", sort: "value", dir: -1 };
   function renderRankings() {
     var ps = R.punts;
     var list = D.seasons[R.season] || D.current;
+    var curSeason = R.season === D.cur;
+    if (curSeason && R.hide) list = list.filter(function (p) { return !isOutNow(p.missed); });
     var rows = list.map(function (p) {
       return { p: p, value: valueOf(p, ps), zt: zsum(p[R.basis], ps) };
     });
     // rank by value over the whole season list, before filters, so rank numbers stay stable
     rows.slice().sort(function (a, b) { return (b.value == null ? -1e9 : b.value) - (a.value == null ? -1e9 : a.value); })
         .forEach(function (r, i) { r.rank = i + 1; });
+    // waiver line: in a league of T teams x R spots, about T x R players are rostered;
+    // the first player below that line is "replacement level" (vs waiver = 0)
+    // injured players sit in IL spots, so only players who are playing count toward the line
+    var pool = L.teams * L.roster;
+    rows.filter(function (r) { return !(curSeason && isOutNow(r.p.missed)); })
+        .sort(function (a, b) { return (b.value == null ? -1e9 : b.value) - (a.value == null ? -1e9 : a.value); })
+        .forEach(function (r, i) { r.arank = i + 1; });
+    var replRow = rows.filter(function (r) { return r.arank === pool + 1; })[0];
+    var repl = replRow && replRow.value != null ? replRow.value : null;
+    rows.forEach(function (r) { r.vw = repl == null || r.value == null ? null : r.value - repl; });
     rows = rows.filter(function (r) { return (!R.pos || r.p.pos === R.pos) && r.p.gp >= R.gp && match(r.p, R.q); });
     var key = R.sort, dir = R.dir;
     rows.sort(function (a, b) {
       var x, y;
       if (key === "rank") { x = a.rank; y = b.rank; }
       else if (key === "name") { return dir * a.p.n.localeCompare(b.p.n); }
-      else if (key === "value") { x = a.value; y = b.value; }
+      else if (key === "value" || key === "vw") { x = a.value; y = b.value; }
       else if (key === "zt") { x = a.zt; y = b.zt; }
       else if (key === "gp") { x = a.p.gp; y = b.p.gp; }
       else if (key === "mpg") { x = a.p.mpg; y = b.p.mpg; }
@@ -369,20 +462,27 @@ ul.chips button:hover { color: var(--neg); }
       if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
       return dir * (x - y);
     });
-    var cols = [["rank", "#", ""], ["name", "Player", "l"], ["gp", "GP", ""], ["mpg", "MPG", ""], ["value", "Value", ""], ["zt", "Z total", ""]];
+    var cols = [["rank", "#", ""], ["name", "Player", "l"], ["gp", "GP", ""], ["mpg", "MPG", ""], ["value", "Value", ""], ["vw", "vs waiver", ""], ["zt", "Z total", ""]];
     CATS.forEach(function (c, i) { cols.push(["c" + i, c, ""]); });
     $("r-table").tHead.innerHTML = "<tr>" + cols.map(function (c) {
       var s = R.sort === c[0] ? ' aria-sort="' + (R.dir === -1 ? "descending" : "ascending") + '"' : "";
       return '<th class="sortable ' + c[2] + '" tabindex="0" data-k="' + c[0] + '"' + s + ">" + c[1] + "</th>";
     }).join("") + "</tr>";
+    // draw the waiver line only when the table is in value order
+    var byValue = (R.sort === "value" || R.sort === "vw") && R.dir === -1 || R.sort === "rank" && R.dir === 1, lineDone = false;
     $("r-table").tBodies[0].innerHTML = rows.map(function (r) {
-      var p = r.p, z = p[R.basis];
+      var p = r.p, z = p[R.basis], sep = "";
+      if (byValue && !lineDone && r.arank > pool) {
+        lineDone = true;
+        sep = '<tr class="wline"><td colspan="' + cols.length + '">Waiver line: about ' + pool + " players are rostered in a " + L.teams + "-team, " + L.roster +
+          "-spot league. Players below this line are usually free agents.</td></tr>";
+      }
       var cells = CATS.map(function (c, i) {
         var txt = R.show === "stat" ? statText(p, i) : fmt(z[i]);
         return '<td class="cat' + (ps.indexOf(i) >= 0 ? " punted" : "") + '" style="' + heat(z[i]) + '" title="' + c + " z " + fmt(z[i]) + '">' + txt + "</td>";
       }).join("");
-      return "<tr><td class=\"rk\">" + r.rank + '</td><td class="l name">' + plink(p) + "<small>" + esc(p.t) + " · " + esc(p.pos || "") + "</small></td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
-        '</td><td class="big">' + fmt(r.value) + "</td><td>" + fmt(r.zt) + "</td>" + cells + "</tr>";
+      return sep + "<tr><td class=\"rk\">" + r.rank + '</td><td class="l name">' + plink(p) + (curSeason ? outTag(p.missed) : "") + "<small>" + esc(p.t) + " · " + esc(p.pos || "") + "</small></td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
+        '</td><td class="big">' + fmt(r.value) + '</td><td class="' + (r.vw > 0 ? "up" : r.vw < 0 ? "down" : "") + '">' + signed(r.vw, 1) + "</td><td>" + fmt(r.zt) + "</td>" + cells + "</tr>";
     }).join("");
     $("r-count").textContent = rows.length + " of " + list.length + " players";
   }
@@ -438,7 +538,7 @@ ul.chips button:hover { color: var(--neg); }
     $("p-table").tBodies[0].innerHTML = shown.map(function (r) {
       var p = r.p;
       var cls = function (v) { return v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : ""; };
-      return '<tr><td class="rk">' + p.rank + '</td><td class="l name">' + plink(p) + "<small>" + esc(p.t || "") + "</small></td><td>" + p.exp + "</td><td>" + fmt(p.mpg, 1) +
+      return '<tr><td class="rk">' + p.rank + '</td><td class="l name">' + plink(p) + outTag(p.missed) + "<small>" + esc(p.t || "") + "</small></td><td>" + p.exp + "</td><td>" + fmt(p.mpg, 1) +
         '</td><td class="big">' + fmt(p.tot) + "</td><td>" + (p.lastRank == null ? "" : p.lastRank) + '</td><td class="' + cls(p.chg) + '">' + signed(p.chg) +
         "</td><td>" + (r.now == null ? "" : fmt(r.now) + ' <small style="color:var(--muted)">' + r.gp + " gp</small>") + '</td><td class="' + cls(r.gap) + '">' + signed(r.gap) + "</td>" +
         CATS.map(function (c, i) { return '<td class="cat" style="' + heat(p.z[i]) + '">' + fmt(p.z[i]) + "</td>"; }).join("") + "</tr>";
@@ -549,7 +649,7 @@ ul.chips button:hover { color: var(--neg); }
     gamesWaiters.push(done);
     if (gamesLoading) return;
     gamesLoading = true;
-    fetch("data/games.json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
+    fetch("data/games.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
       var G = raw.games, byId = {};
       for (var i = 0; i < G.athlete_id.length; i++) {
         (byId[G.athlete_id[i]] = byId[G.athlete_id[i]] || []).push({ date: G.date[i], team: G.team[i], opp: G.opponent[i], min: G.min[i],
@@ -646,7 +746,8 @@ ul.chips button:hover { color: var(--neg); }
     var basis = R.basis, ps = R.punts;
     var showProj = !!proj && basis === "z";
     $("pm-title").textContent = latest.n;
-    $("pm-sub").textContent = [latest.t, latest.pos].filter(Boolean).join(" · ") + " · " + L.teams + " teams, " + L.roster + " roster spots · " +
+    var missedNow = bySeason[D.cur] ? bySeason[D.cur].missed : proj ? proj.missed : null;
+    $("pm-sub").textContent = [latest.t, latest.pos].filter(Boolean).join(" · ") + (isOutNow(missedNow) ? " · NOT PLAYING: missed his team's last " + missedNow + " games" : "") + " · " + L.teams + " teams, " + L.roster + " roster spots · " +
       (basis === "z" ? "per-game" : "per-48") + " z-scores · values with " + puntText(ps);
 
     // season table
@@ -714,12 +815,335 @@ ul.chips button:hover { color: var(--neg); }
     if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
   }
 
+  /* ---------- Squad builder ---------- */
+  var SQ = null, sqLoading = false;
+  var S = { mine: [], opp: [], wav: [], out: {}, basis: "blend", week: "rest", punts: [] };
+  var SQ_MAX = { mine: 20, opp: 20, wav: 10 };
+  var LINE_KEYS = ["pts", "reb", "ast", "stl", "blk", "fg3m", "fgm", "fga", "ftm", "fta", "tov"];
+  var COUNT_CATS = ["pts", "reb", "ast", "stl", "blk", "fg3m", "tov"];
+  function sqSave() {
+    try { localStorage.setItem("ncl-squad", JSON.stringify({ mine: S.mine, opp: S.opp, wav: S.wav, out: S.out, basis: S.basis, week: S.week })); } catch (e) {}
+  }
+  function sqRestore() {
+    try {
+      var x = JSON.parse(localStorage.getItem("ncl-squad") || "null"); if (!x) return;
+      ["mine", "opp", "wav"].forEach(function (k) { if (Array.isArray(x[k])) S[k] = x[k].filter(function (v) { return typeof v === "number"; }); });
+      if (x.out && typeof x.out === "object") S.out = x.out;
+      if (["blend", "season", "last14", "proj"].indexOf(x.basis) >= 0) S.basis = x.basis;
+      if (["rest", "this", "next"].indexOf(x.week) >= 0) S.week = x.week;
+    } catch (e) {}
+  }
+  function loadSquad(done) {
+    if (SQ) { done(); return; }
+    if (sqLoading) return;
+    sqLoading = true;
+    fetch("data/squad.json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
+      var P = raw.projections, proj = {}, i;
+      for (i = 0; i < P.athlete_id.length; i++) {
+        var line = {}; LINE_KEYS.forEach(function (k) { line[k] = P[k][i]; });
+        proj[P.athlete_id[i]] = line;
+      }
+      var disp = {}; raw.dispersion.cat.forEach(function (c, j) { disp[c] = raw.dispersion.phi[j]; });
+      var names = {}; for (i = 0; i < raw.players.athlete_id.length; i++) names[raw.players.athlete_id[i]] = { n: raw.players.player[i], t: raw.players.team[i], missed: raw.players.missed[i] };
+      SQ = { proj: proj, disp: disp, names: names, sched: raw.schedule };
+      done();
+    }).catch(function (e) {
+      sqLoading = false;
+      $("sq-match").innerHTML = '<div class="err"><b>The Squad builder data did not load.</b> Reload the page to try again. (' + esc(e.message) + ")</div>";
+    });
+  }
+  // Out unless the user said otherwise; by default, players who have missed 3+ straight team games are out
+  function sqMissed(id) { var x = SQ.names[id]; return x && x.missed != null ? x.missed : null; }
+  function sqIsOut(id) { return Object.prototype.hasOwnProperty.call(S.out, id) ? !!S.out[id] : isOutNow(sqMissed(id)); }
+  function sqReady() { return SQ && GAMES && D; }
+
+  // Everyone we can name: this season's players, plus projected players who have not played yet
+  function sqPeople() {
+    var out = {};
+    Object.keys(SQ.names).forEach(function (id) { out[id] = { id: +id, n: SQ.names[id].n, t: SQ.names[id].t }; });
+    D.proj.forEach(function (p) { if (!out[p.id]) out[p.id] = { id: p.id, n: p.n, t: p.t }; });
+    return out;
+  }
+  function norm(x) { return String(x).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim(); }
+  // Turn a typed or pasted name into a player id; also understands Yahoo-style "N. Jokic"
+  function sqFind(text, people) {
+    var t = " " + norm(text) + " ", best = null, bestLen = 0;
+    Object.keys(people).forEach(function (id) {
+      var full = norm(people[id].n), parts = full.split(" ");
+      var short = parts.length > 1 ? parts[0][0] + " " + parts.slice(1).join(" ") : full;
+      [full, short].forEach(function (cand) {
+        if (cand.length > bestLen && t.indexOf(" " + cand + " ") >= 0) { best = +id; bestLen = cand.length; }
+      });
+    });
+    return best;
+  }
+  function sqAdd(list, id) {
+    if (id == null) return false;
+    ["mine", "opp", "wav"].forEach(function (k) { var at = S[k].indexOf(id); if (at >= 0) S[k].splice(at, 1); });   // a player is on one list only
+    if (S[list].length >= SQ_MAX[list]) return false;
+    S[list].push(id); return true;
+  }
+
+  function avgLine(games) {
+    var line = {}; LINE_KEYS.forEach(function (k) { line[k] = 0; });
+    games.forEach(function (g) { LINE_KEYS.forEach(function (k) { line[k] += g[k]; }); });
+    LINE_KEYS.forEach(function (k) { line[k] /= games.length; });
+    return line;
+  }
+  function daysBefore(iso, n) { var d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() - n); return isoDate(d); }
+  function isoDate(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  // Per-game line for a player under the chosen basis, with a note when it had to fall back
+  function sqLine(id, basis) {
+    var games = GAMES[id] || [], proj = SQ.proj[id];
+    var season = games.length ? avgLine(games) : null;
+    if (basis === "season") return season ? { line: season, src: "" } : proj ? { line: proj, src: "projection (no games yet)" } : null;
+    if (basis === "proj") return proj ? { line: proj, src: "" } : season ? { line: season, src: "season (no projection)" } : null;
+    if (basis === "last14") {
+      var from = daysBefore(D.updated, 13), recent = games.filter(function (g) { return g.date >= from; });
+      if (recent.length >= 3) return { line: avgLine(recent), src: "" };
+      return season ? { line: season, src: "season (under 3 games in 14 days)" } : proj ? { line: proj, src: "projection" } : null;
+    }
+    // blend: lean on this season more as games pile up (10 games = half and half)
+    if (season && proj) {
+      var w = games.length / (games.length + 10), line = {};
+      LINE_KEYS.forEach(function (k) { line[k] = w * season[k] + (1 - w) * proj[k]; });
+      return { line: line, src: "" };
+    }
+    return season ? { line: season, src: "" } : proj ? { line: proj, src: "" } : null;
+  }
+  // Same formula as the R pipeline: contribution per category, then weighted by punt
+  function kOfLine(line) {
+    var K = D.kp;
+    return DCAT.map(function (c) {
+      var pg = c === "fg_pct" ? (line.fgm - K.lg_fg * line.fga) / K.fga_week : c === "ft_pct" ? (line.ftm - K.lg_ft * line.fta) / K.fta_week : line[c];
+      var k = 100 * 0.3989423 * (pg - K[c].pool_mean) * K.gpw / K[c].sigma;
+      return c === "tov" ? -k : k;
+    });
+  }
+  function valueOfLine(line, set) {
+    var w = D.punts[puntKey(set)], k = kOfLine(line), t = 0;
+    for (var i = 0; i < k.length; i++) t += w[i] * k[i];
+    return t;
+  }
+
+  // Week window: Monday to Sunday, like Yahoo
+  function sqWindow() {
+    var today = new Date(); today.setHours(12, 0, 0, 0);
+    var mon = new Date(today); mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    if (S.week === "next") mon.setDate(mon.getDate() + 7);
+    var sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    var from = S.week === "rest" ? today : mon;
+    return { from: isoDate(from), to: isoDate(sun) };
+  }
+  function sqTeamGames(win) {
+    var n = {}, S2 = SQ.sched;
+    for (var i = 0; i < S2.date.length; i++) {
+      if (S2.date[i] < win.from || S2.date[i] > win.to) continue;
+      n[S2.home[i]] = (n[S2.home[i]] || 0) + 1; n[S2.away[i]] = (n[S2.away[i]] || 0) + 1;
+    }
+    return n;
+  }
+  function sqTeamOf(id, people) { var g = GAMES[id]; return g && g.length ? g[g.length - 1].team : (people[id] ? people[id].t : ""); }
+
+  // Expected weekly totals and their variance for a list of players
+  function sqTotals(ids, ctx) {
+    var T = { mu: {}, v: {}, fgm: 0, fga: 0, ftm: 0, fta: 0, vfg: 0, vft: 0, games: 0 };
+    COUNT_CATS.forEach(function (c) { T.mu[c] = 0; T.v[c] = 0; });
+    ids.forEach(function (id) {
+      if (sqIsOut(id)) return;
+      var L = ctx.lines[id]; if (!L) return;
+      var g = ctx.games[id] || 0; if (!g) return;
+      T.games += g;
+      COUNT_CATS.forEach(function (c) { T.mu[c] += g * L.line[c]; T.v[c] += g * SQ.disp[c] * Math.max(L.line[c], 0.05); });
+      T.fgm += g * L.line.fgm; T.fga += g * L.line.fga; T.vfg += g * SQ.disp.fg_pct * L.line.fga;
+      T.ftm += g * L.line.ftm; T.fta += g * L.line.fta; T.vft += g * SQ.disp.ft_pct * L.line.fta;
+    });
+    return T;
+  }
+  function phi(x) {   // standard normal CDF
+    var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2);
+    var p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    return x > 0 ? 1 - p : p;
+  }
+  function winChance(diff, sd) { return sd > 0 ? phi(diff / sd) : diff > 0 ? 1 : diff < 0 ? 0 : 0.5; }
+  // Chance of winning each category, in display order, and of winning 5 or more
+  function sqMatch(A, B) {
+    var p = DCAT.map(function (c) {
+      if (c === "fg_pct" || c === "ft_pct") {
+        var m = c === "fg_pct" ? ["fgm", "fga", "vfg"] : ["ftm", "fta", "vft"];
+        if (!A[m[1]] || !B[m[1]]) return A[m[1]] ? 0.5 : 0.5;
+        var sd = Math.sqrt(A[m[2]] / (A[m[1]] * A[m[1]]) + B[m[2]] / (B[m[1]] * B[m[1]]));
+        return winChance(A[m[0]] / A[m[1]] - B[m[0]] / B[m[1]], sd);
+      }
+      var s = Math.sqrt(A.v[c] + B.v[c]), d = A.mu[c] - B.mu[c];
+      return winChance(c === "tov" ? -d : d, s);
+    });
+    var dist = [1];   // number of categories won
+    p.forEach(function (q) {
+      var nd = new Array(dist.length + 1).fill(0);
+      dist.forEach(function (x, k) { nd[k] += x * (1 - q); nd[k + 1] += x * q; });
+      dist = nd;
+    });
+    var win = 0; for (var k = 5; k < dist.length; k++) win += dist[k];
+    return { p: p, win: win, exp: p.reduce(function (t, q) { return t + q; }, 0) };
+  }
+
+  function renderSquad() {
+    if (!$("v-squad").classList.contains("on")) return;
+    if (!D) return;
+    if (!sqReady()) {
+      $("sq-match").innerHTML = '<p class="gsum">Loading…</p>';
+      loadGames(function () { loadSquad(renderSquad); });
+      return;
+    }
+    var people = sqPeople();
+    if (!$("sq-names").dataset.n || +$("sq-names").dataset.n !== Object.keys(people).length) {
+      $("sq-names").innerHTML = Object.keys(people).map(function (id) { return '<option value="' + esc(people[id].n) + '">'; }).join("");
+      $("sq-names").dataset.n = Object.keys(people).length;
+    }
+    var win = sqWindow(), tg = sqTeamGames(win);
+    var all = S.mine.concat(S.opp, S.wav), ctx = { lines: {}, games: {} };
+    all.forEach(function (id) { ctx.lines[id] = sqLine(id, S.basis); ctx.games[id] = tg[sqTeamOf(id, people)] || 0; });
+
+    // replacement level: the value of the first player outside the rosterable pool this season
+    var vals = D.current.filter(function (p) { return !isOutNow(p.missed); }).map(function (p) { return valueOf(p, S.punts); }).filter(function (v) { return v != null; }).sort(function (a, b) { return b - a; });
+    var repl = vals[Math.min(vals.length - 1, L.teams * L.roster)] || 0;
+    var valOf = function (id) { return ctx.lines[id] ? valueOfLine(ctx.lines[id].line, S.punts) : null; };
+
+    ["mine", "opp", "wav"].forEach(function (k) {
+      $("sq-" + k + "-n").textContent = S[k].length ? S[k].length + (k === "wav" ? " of 10" : " players") : "";
+      $("sq-" + k).innerHTML = S[k].map(function (id, i) {
+        var p = people[id] || { id: id, n: "Unknown player", t: "" }, v = valOf(id), L2 = ctx.lines[id];
+        return '<li class="' + (sqIsOut(id) ? "is-out" : "") + '"><span class="who">' + plink({ id: id, n: p.n }) + outTag(sqMissed(id)) + "<small>" + esc(sqTeamOf(id, people)) + "</small></span>" +
+          '<span class="g" title="Games in the chosen week">' + (ctx.games[id] || 0) + " g</span>" +
+          '<span class="g" title="Value vs waiver level">' + (v == null ? "–" : signed(v - repl, 1)) + "</span>" +
+          (k === "wav" ? "" : '<label title="' + (L2 && L2.src ? "Based on " + esc(L2.src) : "Mark as out this week") + '"><input type="checkbox" data-out="' + id + '"' + (sqIsOut(id) ? " checked" : "") + ">Out</label>") +
+          '<button type="button" class="rm" data-rm="' + k + '" data-i="' + i + '" aria-label="Remove ' + esc(p.n) + '">✕</button></li>';
+      }).join("");
+    });
+
+    var wtxt = win.from === win.to ? win.from : mdy(win.from) + " to " + mdy(win.to);
+    if (!S.mine.length) {
+      $("sq-match").innerHTML = '<div class="sq-head"><span class="sub">Add your players to start. Week: ' + wtxt + ".</span></div>";
+      $("sq-waiver").innerHTML = ""; return;
+    }
+    var A = sqTotals(S.mine, ctx), B = S.opp.length ? sqTotals(S.opp, ctx) : null, M = B ? sqMatch(A, B) : null;
+    if (!A.games && (!B || !B.games)) {
+      $("sq-match").innerHTML = '<div class="sq-head"><span class="sub">No games scheduled for ' + wtxt + ". Pick another week.</span></div>";
+      $("sq-waiver").innerHTML = ""; return;
+    }
+
+    // ---- matchup ----
+    var fmtTot = function (T, c) {
+      if (c === "fg_pct") return T.fga ? (100 * T.fgm / T.fga).toFixed(1) + "%" : "–";
+      if (c === "ft_pct") return T.fta ? (100 * T.ftm / T.fta).toFixed(1) + "%" : "–";
+      return T.mu[c].toFixed(1);
+    };
+    var html = "";
+    if (M) {
+      var worry = [], swing = [];
+      M.p.forEach(function (q, i) { if (q < 0.35) worry.push(CATS[i] + " (" + Math.round(100 * q) + "%)"); else if (q <= 0.65) swing.push(CATS[i] + " (" + Math.round(100 * q) + "%)"); });
+      html += '<div class="sq-head"><span class="big ' + (M.win >= 0.5 ? "up" : "down") + '">' + Math.round(100 * M.win) + "%</span>" +
+        '<span>chance to win the matchup</span><span class="sub">Expected categories ' + M.exp.toFixed(1) + " to " + (9 - M.exp).toFixed(1) +
+        " · " + wtxt + " · games: you " + A.games + ", opponent " + B.games + "</span>" +
+        "<p>" + (worry.length ? "<b>Trouble spots:</b> " + worry.join(", ") + ". " : "No category where you are clearly behind. ") +
+        (swing.length ? "<b>Up for grabs:</b> " + swing.join(", ") + ". A waiver add aimed here helps most." : "") + "</p></div>";
+      html += '<div class="tablebox"><table><thead><tr><th class="l">Category</th><th>You</th><th>Opponent</th><th>Win chance</th><th class="l"></th><th class="l">Status</th></tr></thead><tbody>' +
+        DCAT.map(function (c, i) {
+          var q = M.p[i], st = q > 0.65 ? ["ahead", "Ahead"] : q < 0.35 ? ["behind", "Behind"] : ["toss", "Toss-up"];
+          return '<tr><td class="l name">' + CATS[i] + "</td><td>" + fmtTot(A, c) + "</td><td>" + fmtTot(B, c) + '</td><td class="big">' + Math.round(100 * q) + "%</td>" +
+            '<td class="l"><span class="wbar"><i style="width:' + (100 * q).toFixed(0) + '%"></i></span></td><td class="l"><span class="pill ' + st[0] + '">' + st[1] + "</span></td></tr>";
+        }).join("") + "</tbody></table></div>";
+    } else {
+      html += '<div class="sq-head"><span class="sub">Add your opponent to see the matchup. Week: ' + wtxt + ", your players have " + A.games + " games.</span></div>";
+    }
+    $("sq-match").innerHTML = html;
+
+    // ---- waiver targets ----
+    if (!S.wav.length) { $("sq-waiver").innerHTML = ""; return; }
+    var active = S.mine.filter(function (id) { return !sqIsOut(id); });
+    var rows = S.wav.map(function (id) {
+      var p = people[id] || { n: "Unknown player" }, v = valOf(id), g = ctx.games[id] || 0;
+      var best = null;
+      if (M && active.length) {
+        active.forEach(function (d) {
+          var team = S.mine.filter(function (x) { return x !== d; }).concat([id]);
+          var w2 = sqMatch(sqTotals(team, ctx), B).win;
+          if (!best || w2 > best.win) best = { drop: d, win: w2 };
+        });
+      }
+      var games = GAMES[id] || [], gv = games.map(function (gm) { return valueOfLine(gm, S.punts); }).sort(function (a, b) { return a - b; });
+      var q = function (f) { return gv[Math.min(gv.length - 1, Math.floor(f * gv.length))]; };
+      var l14 = sqLine(id, "last14");
+      return { id: id, n: p.n, g: g, v: v, weekly: v == null ? null : (v - repl) * g / D.kp.gpw, best: best,
+        l14: l14 && !l14.src ? valueOfLine(l14.line, S.punts) : null,
+        floor: gv.length >= 5 ? q(0.2) : null, ceil: gv.length >= 5 ? q(0.8) : null };
+    });
+    rows.sort(function (a, b) {
+      if (M) return (b.best ? b.best.win : 0) - (a.best ? a.best.win : 0);
+      return (b.weekly == null ? -1e9 : b.weekly) - (a.weekly == null ? -1e9 : a.weekly);
+    });
+    $("sq-waiver").innerHTML = "<h2 style=\"margin-top:18px\">Waiver targets, ranked</h2>" +
+      '<p class="lede">' + (M ? "Ranked by how much each player raises your chance to win this matchup, if you drop the player listed next to them." : "Add your opponent to rank these by matchup impact. Until then they are ranked by value times games this week.") + "</p>" +
+      '<div class="tablebox"><table><thead><tr><th class="rk">#</th><th class="l">Player</th><th>Games</th>' +
+      (M ? '<th class="l">Drop</th><th>Matchup win</th><th>Change</th>' : "") +
+      "<th>Weekly value</th><th>Value vs waiver</th><th>Last 14 days</th><th>Floor · ceiling</th></tr></thead><tbody>" +
+      rows.map(function (r, i) {
+        var d = r.best ? r.best.win - M.win : null;
+        return '<tr><td class="rk">' + (i + 1) + '</td><td class="l name">' + plink({ id: r.id, n: r.n }) + outTag(sqMissed(r.id)) + "</td><td>" + r.g + "</td>" +
+          (M ? '<td class="l">' + (r.best ? esc((people[r.best.drop] || { n: "?" }).n) : "–") + "</td><td>" + (r.best ? Math.round(100 * r.best.win) + "%" : "–") +
+            '</td><td class="big ' + (d > 0.005 ? "up" : d < -0.005 ? "down" : "") + '">' + (d == null ? "–" : (d > 0 ? "+" : "") + (100 * d).toFixed(1) + " pts") + "</td>" : "") +
+          "<td>" + fmt(r.weekly, 1) + "</td><td>" + (r.v == null ? "–" : signed(r.v - repl, 1)) + "</td><td>" + (r.l14 == null ? "–" : signed(r.l14 - repl, 1)) + "</td>" +
+          "<td>" + (r.floor == null ? "–" : signed(r.floor - repl, 0) + " · " + signed(r.ceil - repl, 0)) + "</td></tr>";
+      }).join("") + "</tbody></table></div>" +
+      '<p class="note">Weekly value: value vs waiver scaled by games this week (3.4 games is an average week). Value vs waiver and Last 14 days: zero is a typical waiver-wire player. Floor and ceiling: a bad game (20th percentile) and a good game (80th percentile) this season, on the same scale.</p>';
+  }
+
+  function bindSquad() {
+    sqRestore();
+    $("sq-basis").value = S.basis;
+    $("sq-week").querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.week ? "true" : "false"); });
+    $("sq-basis").addEventListener("change", function (e) { S.basis = e.target.value; sqSave(); renderSquad(); });
+    seg("sq-week", function (v) { S.week = v; sqSave(); renderSquad(); });
+    puntBox("sq-punt", S, renderSquad);
+    var sec = $("v-squad");
+    sec.addEventListener("submit", function (e) {
+      var f = e.target.closest("form.add"); if (!f) return;
+      e.preventDefault();
+      var inp = f.querySelector("input"), id = sqFind(inp.value, sqPeople());
+      if (id != null && sqAdd(f.dataset.list, id)) { inp.value = ""; sqSave(); renderSquad(); } else inp.select();
+    });
+    sec.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b || !SQ) return;
+      if (b.dataset.rm) { S[b.dataset.rm].splice(+b.dataset.i, 1); sqSave(); renderSquad(); }
+      else if (b.dataset.clear) { S[b.dataset.clear] = []; sqSave(); renderSquad(); }
+      else if (b.dataset.paste) {
+        var box = b.closest("details"), lines = box.querySelector("textarea").value.split(/\n/), people = sqPeople(), added = 0, missed = [];
+        lines.forEach(function (ln) {
+          if (!norm(ln)) return;
+          var id = sqFind(ln, people);
+          if (id != null && S[b.dataset.paste].indexOf(id) < 0) { if (sqAdd(b.dataset.paste, id)) added++; }
+          else if (id == null && norm(ln).split(" ").length >= 2 && norm(ln).length < 60) missed.push(ln.trim());
+        });
+        box.querySelector(".msg").textContent = "Added " + added + " player" + (added === 1 ? "" : "s") + "." + (missed.length ? " Not recognised: " + missed.slice(0, 6).join(", ") + (missed.length > 6 ? "…" : "") : "");
+        if (added) box.querySelector("textarea").value = "";
+        sqSave(); renderSquad();
+      }
+    });
+    sec.addEventListener("change", function (e) {
+      var c = e.target.closest("input[data-out]"); if (!c) return;
+      var id = +c.dataset.out; S.out[id] = c.checked;   // remember the user's choice, even against the default
+      sqSave(); renderSquad();
+    });
+  }
+
   /* ---------- Routing ---------- */
-  var VIEWS = ["rankings", "projections", "trade", "categories"];
+  var VIEWS = ["rankings", "projections", "trade", "squad", "categories"];
   function route() {
     var h = (location.hash || "").slice(1);
     if (VIEWS.indexOf(h) < 0) h = "rankings";
     VIEWS.forEach(function (v) { $("v-" + v).classList.toggle("on", v === h); });
+    if (h === "squad") renderSquad();
     document.querySelectorAll("nav.tabs a").forEach(function (a) {
       if (a.getAttribute("href") === "#" + h) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -746,7 +1170,7 @@ ul.chips button:hover { color: var(--neg); }
       var top = D.current.filter(function (p) { return p.k; }).slice().sort(function (a, b) { return valueOf(b, []) - valueOf(a, []); });
       if (top.length > 30) { T.give = [top[11].n]; T.get = [top[24].n, top[29].n]; }
     }
-    renderRankings(); renderProjections(); renderTrade(); renderCategories();
+    renderRankings(); renderProjections(); renderTrade(); renderCategories(); renderSquad();
   }
 
   var loadSeq = 0;
@@ -754,7 +1178,7 @@ ul.chips button:hover { color: var(--neg); }
     var seq = ++loadSeq;
     document.body.classList.add("loading");
     $("error").innerHTML = "";
-    fetch("data/t" + L.teams + "_r" + L.roster + ".json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
+    fetch("data/t" + L.teams + "_r" + L.roster + ".json", { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
       if (seq !== loadSeq) return;
       setData(raw);
       document.body.classList.remove("loading");
@@ -779,8 +1203,10 @@ ul.chips button:hover { color: var(--neg); }
     $("g-roster").addEventListener("change", leagueChange);
     puntBox("r-punt", R, renderRankings);
     puntBox("t-punt", T, renderTrade);
+    bindSquad();
     $("r-season").addEventListener("change", function (e) { R.season = +e.target.value; renderRankings(); });
     $("r-pos").addEventListener("change", function (e) { R.pos = e.target.value; renderRankings(); });
+    $("r-hide").addEventListener("change", function (e) { R.hide = e.target.checked; renderRankings(); });
     $("r-gp").addEventListener("input", function (e) { R.gp = +e.target.value || 0; renderRankings(); });
     $("r-q").addEventListener("input", function (e) { R.q = e.target.value.trim().toLowerCase(); renderRankings(); });
     seg("r-basis", function (v) { R.basis = v; renderRankings(); });
