@@ -62,6 +62,36 @@ input[type="number"] { width: 72px; }
 .seg button { font: inherit; color: var(--muted); background: transparent; border: 0; padding: 6px 10px; min-height: 30px; cursor: pointer; border-right: 1px solid var(--line); }
 .seg button:last-child { border-right: 0; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.puntbox { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.puntbox button { font: inherit; font-size: 12px; font-weight: 600; color: var(--muted); background: transparent; border: 0; border-right: 1px solid var(--line); padding: 6px 8px; min-height: 30px; min-width: 38px; cursor: pointer; }
+.puntbox button:last-child { border-right: 0; }
+.puntbox button[aria-pressed="true"] { background: var(--neg); color: #fff; text-decoration: line-through; }
+.puntbox button:disabled { opacity: .35; cursor: not-allowed; }
+.puntbox button.clear { color: var(--ink); font-weight: 400; }
+button.plink { font: inherit; font-weight: 600; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent); text-underline-offset: 3px; }
+button.plink:hover { color: var(--accent); }
+/* player card */
+.modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; background: color-mix(in srgb, #000 55%, transparent); overflow-y: auto; }
+.modal[hidden] { display: none; }
+.modal-card { width: 100%; max-width: 980px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px 22px; box-shadow: 0 18px 48px rgba(0,0,0,.35); }
+.modal-head { display: flex; align-items: flex-start; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 14px; }
+.modal-head h3 { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1; text-transform: uppercase; margin: 0; }
+.modal-head .sub { color: var(--muted); margin-top: 4px; }
+.modal-head .x { margin-left: auto; font: inherit; font-size: 18px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; width: 36px; height: 36px; cursor: pointer; }
+.modal-card h4 { font-family: var(--font-display); font-weight: 600; font-size: 18px; text-transform: uppercase; letter-spacing: .03em; margin: 16px 0 8px; }
+.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+.gbox { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 6px; }
+.gbox .gctl { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 8px; }
+.gbox .seg { flex-wrap: wrap; }
+.gbox svg { width: 100%; height: auto; display: block; }
+.gbox .gsum { color: var(--muted); font-size: 12px; margin: 2px 0 6px; }
+.gbox rect.gbar:hover { opacity: .75; }
+.mpanel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px 4px; }
+.mpanel.punted { opacity: .4; }
+.mpanel .hd { display: flex; justify-content: space-between; align-items: baseline; }
+.mpanel .hd b { font-family: var(--font-display); font-size: 19px; font-weight: 600; }
+.mpanel .hd span { color: var(--muted); font-size: 12px; }
+.mpanel svg { width: 100%; height: auto; display: block; }
 .check { display: flex; align-items: center; gap: 6px; min-height: 32px; }
 .count { color: var(--muted); font-size: 12px; margin-left: auto; align-self: center; }
 .tablebox { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
@@ -136,10 +166,10 @@ ul.chips button:hover { color: var(--neg); }
 
   <section class="view" id="v-rankings">
     <h2>Player rankings</h2>
-    <p class="lede">Value is in percentage points of weekly matchup win probability: 12 means about 12 points more than an average rostered player. Pick a punt and values are recalculated for a team that gives that category up. Everything is computed for the league size chosen at the top, and cell shading shows the z-score against that league's rosterable pool.</p>
+    <p class="lede">Value is in percentage points of weekly matchup win probability: 12 means about 12 points more than an average rostered player. Pick up to three categories to punt and values are recalculated for a team that gives them up. Click a player's name to see five seasons of category scores. Everything is computed for the league size chosen at the top, and cell shading shows the z-score against that league's rosterable pool.</p>
     <div class="rail">
       <div class="field"><label for="r-season">Season</label><select id="r-season"></select></div>
-      <div class="field"><label for="r-punt">Punt</label><select id="r-punt"></select></div>
+      <div class="field"><span class="lab" id="r-punt-lab">Punt (up to 3)</span><div class="puntbox" id="r-punt" role="group" aria-labelledby="r-punt-lab"></div></div>
       <div class="field"><span class="lab">Z-scores</span><div class="seg" id="r-basis"><button type="button" data-v="z" aria-pressed="true">Per game</button><button type="button" data-v="z48" aria-pressed="false">Per 48 min</button></div></div>
       <div class="field"><span class="lab">Cells show</span><div class="seg" id="r-show"><button type="button" data-v="stat" aria-pressed="true">Stats</button><button type="button" data-v="z" aria-pressed="false">Z-scores</button></div></div>
       <div class="field"><label for="r-pos">Position</label><select id="r-pos"><option value="">All</option></select></div>
@@ -148,7 +178,7 @@ ul.chips button:hover { color: var(--neg); }
       <div class="count" id="r-count"></div>
     </div>
     <div class="tablebox"><table id="r-table"><thead></thead><tbody></tbody></table></div>
-    <p class="note">Z total is the sum of the nine category z-scores, leaving out the punted category. FG% and FT% are volume-weighted impact scores, so a low-volume shooter does not top the list. Turnovers are flipped: higher is better.</p>
+    <p class="note">Z total is the sum of the nine category z-scores, leaving out the punted categories. FG% and FT% are volume-weighted impact scores, so a low-volume shooter does not top the list. Turnovers are flipped: higher is better.</p>
   </section>
 
   <section class="view" id="v-projections">
@@ -165,10 +195,10 @@ ul.chips button:hover { color: var(--neg); }
 
   <section class="view" id="v-trade">
     <h2>Trade analyzer</h2>
-    <p class="lede">Add the players leaving and joining your roster. Each category shows the net change in z-score for your team, and the total value uses the punt you pick.</p>
+    <p class="lede">Add the players leaving and joining your roster. Each category shows the net change in z-score for your team, and the total value uses the punts you pick.</p>
     <div class="rail">
       <div class="field"><label for="t-src">Based on</label><select id="t-src"></select></div>
-      <div class="field"><label for="t-punt">Punt</label><select id="t-punt"></select></div>
+      <div class="field"><span class="lab" id="t-punt-lab">Punt (up to 3)</span><div class="puntbox" id="t-punt" role="group" aria-labelledby="t-punt-lab"></div></div>
     </div>
     <div class="trade">
       <div class="side"><h3>You give</h3>
@@ -192,12 +222,25 @@ ul.chips button:hover { color: var(--neg); }
   </section>
 </div>
 
+<div class="modal" id="pm" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+    <div class="modal-head">
+      <div><h3 id="pm-title"></h3><div class="sub" id="pm-sub"></div></div>
+      <button type="button" class="x" id="pm-close" aria-label="Close player card">✕</button>
+    </div>
+    <div id="pm-body"></div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
   var D = null;
   var CATS = ["PTS", "REB", "AST", "STL", "BLK", "3PM", "FG%", "FT%", "TO"];
-  var PUNTS = ["none", "pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"];
+  // Category names in display order, and the order R uses to name punt scenarios ("tov+fg_pct")
+  var DCAT = ["pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"];
+  var RCAT = ["pts", "reb", "ast", "stl", "blk", "fg3m", "tov", "fg_pct", "ft_pct"];
+  var MAX_PUNTS = 3;
   // League sizes the pipeline computes (keep in sync with run_all.sh)
   var TEAM_OPTS = [8, 10, 12, 14, 16], ROSTER_OPTS = [10, 11, 12, 13, 14, 15, 16];
   var L = { teams: 12, roster: 13 };
@@ -212,7 +255,7 @@ ul.chips button:hover { color: var(--neg); }
         s: SK.map(function (k) { return P[k][i]; }),
         z: ZK.map(function (k) { return P["z_pg_" + k][i]; }),
         z48: ZK.map(function (k) { return P["z_p48_" + k][i]; }),
-        v: P.value_none[i] == null ? null : PUNTS.map(function (k) { return P["value_" + k][i]; }) };
+        k: P.k_pts[i] == null ? null : DCAT.map(function (c) { return P["k_" + c][i]; }) };
       (seasons[P.season[i]] = seasons[P.season[i]] || []).push(row);
     }
     var J = raw.projections, proj = [];
@@ -225,13 +268,29 @@ ul.chips button:hover { color: var(--neg); }
     for (i = 0; i < V.season_label.length; i++) {
       pivot.push({ season: V.season_label[i], p: ["pts", "reb", "ast", "stl", "blk", "fg3m", "fg_pct", "ft_pct", "tov"].map(function (k) { return V[k][i]; }) });
     }
-    var cur = raw.current_season;
+    var U = raw.punts, punts = {};
+    for (i = 0; i < U.punt.length; i++) punts[U.punt[i]] = DCAT.map(function (c) { return U[c][i]; });
+    var cur = raw.current_season, byId = {}, projById = {};
+    Object.keys(seasons).forEach(function (y) { seasons[y].forEach(function (p) { (byId[p.id] = byId[p.id] || {})[y] = p; }); });
+    proj.forEach(function (p) { projById[p.id] = p; });
     return { updated: raw.updated, cur: cur, seasons: seasons, order: Object.keys(seasons).map(Number).sort(function (a, b) { return b - a; }),
-      current: seasons[cur] || [], last: seasons[cur - 1] || [], proj: proj, pivot: pivot };
+      current: seasons[cur] || [], last: seasons[cur - 1] || [], proj: proj, pivot: pivot, punts: punts, byId: byId, projById: projById };
   }
-  // punt key -> index into the z arrays (same order as CATS)
-  var PUNT_CAT = { none: -1, pts: 0, reb: 1, ast: 2, stl: 3, blk: 4, fg3m: 5, fg_pct: 6, ft_pct: 7, tov: 8 };
-  var PUNT_LABEL = { none: "No punt", pts: "Punt PTS", reb: "Punt REB", ast: "Punt AST", stl: "Punt STL", blk: "Punt BLK", fg3m: "Punt 3PM", fg_pct: "Punt FG%", ft_pct: "Punt FT%", tov: "Punt TO" };
+  // A punt is a list of display indices, e.g. [6, 8] = FG% and TO
+  function puntKey(set) {
+    if (!set.length) return "none";
+    return RCAT.filter(function (c) { return set.indexOf(DCAT.indexOf(c)) >= 0; }).join("+");
+  }
+  function puntText(set) { return set.length ? set.slice().sort(function (a, b) { return a - b; }).map(function (i) { return CATS[i]; }).join(" + ") : "no punt"; }
+  // value = sum over categories of (punt weight x the player's contribution in that category)
+  function valueOf(p, set) {
+    if (!p.k) return null;
+    var w = D.punts[puntKey(set)];
+    if (!w) return null;
+    var t = 0;
+    for (var i = 0; i < w.length; i++) t += w[i] * (p.k[i] || 0);
+    return t;
+  }
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   var fmt = function (v, n) { return v == null ? "" : v.toFixed(n == null ? 2 : n); };
@@ -242,9 +301,9 @@ ul.chips button:hover { color: var(--neg); }
     var a = Math.min(Math.abs(z), 3) / 3 * 46;
     return "background-color:color-mix(in srgb, var(" + (z >= 0 ? "--pos" : "--neg") + ") " + a.toFixed(0) + "%, transparent)";
   }
-  function zsum(z, puntIdx) {
+  function zsum(z, set) {
     var t = 0;
-    for (var i = 0; i < z.length; i++) if (i !== puntIdx && z[i] != null) t += z[i];
+    for (var i = 0; i < z.length; i++) if ((!set || set.indexOf(i) < 0) && z[i] != null) t += z[i];
     return t;
   }
   function statText(p, i) {
@@ -261,18 +320,37 @@ ul.chips button:hover { color: var(--neg); }
       onChange(b.dataset.v);
     });
   }
-  function fillPunts(sel) {
-    sel.innerHTML = PUNTS.map(function (k) { return '<option value="' + k + '">' + PUNT_LABEL[k] + "</option>"; }).join("");
+  // Toggle buttons for punting up to MAX_PUNTS categories; state.punts holds the chosen indices
+  function puntBox(id, state, onChange) {
+    var el = $(id);
+    var draw = function () {
+      var full = state.punts.length >= MAX_PUNTS;
+      el.innerHTML = CATS.map(function (c, i) {
+        var on = state.punts.indexOf(i) >= 0;
+        return '<button type="button" data-i="' + i + '" aria-pressed="' + on + '"' + (!on && full ? " disabled" : "") + ' title="' + (on ? "Stop punting " : "Punt ") + c + '">' + c + "</button>";
+      }).join("") + '<button type="button" class="clear" data-i="clear"' + (state.punts.length ? "" : " disabled") + ">Clear</button>";
+    };
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b || b.disabled) return;
+      if (b.dataset.i === "clear") state.punts = [];
+      else {
+        var i = +b.dataset.i, at = state.punts.indexOf(i);
+        if (at >= 0) state.punts.splice(at, 1); else if (state.punts.length < MAX_PUNTS) state.punts.push(i);
+      }
+      draw(); onChange();
+    });
+    draw();
   }
+  function plink(p) { return '<button type="button" class="plink" data-id="' + p.id + '">' + esc(p.n) + "</button>"; }
   function match(p, q) { return !q || (p.n + " " + p.t).toLowerCase().indexOf(q) >= 0; }
 
   /* ---------- Rankings ---------- */
-  var R = { season: 0, punt: "none", basis: "z", show: "stat", pos: "", gp: 0, q: "", sort: "value", dir: -1 };
+  var R = { season: 0, punts: [], basis: "z", show: "stat", pos: "", gp: 0, q: "", sort: "value", dir: -1 };
   function renderRankings() {
-    var pi = PUNT_CAT[R.punt], vi = PUNTS.indexOf(R.punt);
+    var ps = R.punts;
     var list = D.seasons[R.season] || D.current;
     var rows = list.map(function (p) {
-      return { p: p, value: p.v ? p.v[vi] : null, zt: zsum(p[R.basis], pi) };
+      return { p: p, value: valueOf(p, ps), zt: zsum(p[R.basis], ps) };
     });
     // rank by value over the whole season list, before filters, so rank numbers stay stable
     rows.slice().sort(function (a, b) { return (b.value == null ? -1e9 : b.value) - (a.value == null ? -1e9 : a.value); })
@@ -301,9 +379,9 @@ ul.chips button:hover { color: var(--neg); }
       var p = r.p, z = p[R.basis];
       var cells = CATS.map(function (c, i) {
         var txt = R.show === "stat" ? statText(p, i) : fmt(z[i]);
-        return '<td class="cat' + (i === pi ? " punted" : "") + '" style="' + heat(z[i]) + '" title="' + c + " z " + fmt(z[i]) + '">' + txt + "</td>";
+        return '<td class="cat' + (ps.indexOf(i) >= 0 ? " punted" : "") + '" style="' + heat(z[i]) + '" title="' + c + " z " + fmt(z[i]) + '">' + txt + "</td>";
       }).join("");
-      return "<tr><td class=\"rk\">" + r.rank + '</td><td class="l name">' + esc(p.n) + "<small>" + esc(p.t) + " · " + esc(p.pos || "") + "</small></td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
+      return "<tr><td class=\"rk\">" + r.rank + '</td><td class="l name">' + plink(p) + "<small>" + esc(p.t) + " · " + esc(p.pos || "") + "</small></td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
         '</td><td class="big">' + fmt(r.value) + "</td><td>" + fmt(r.zt) + "</td>" + cells + "</tr>";
     }).join("");
     $("r-count").textContent = rows.length + " of " + list.length + " players";
@@ -328,7 +406,7 @@ ul.chips button:hover { color: var(--neg); }
   function renderProjections() {
     var rows = D.proj.map(function (p) {
       var c = nowById[p.id];
-      var now = c ? zsum(c.z, -1) : null;
+      var now = c ? zsum(c.z) : null;
       return { p: p, now: now, gap: now == null ? null : now - p.tot, gp: c ? c.gp : null };
     }).filter(function (r) {
       if (!match(r.p, P.q)) return false;
@@ -360,7 +438,7 @@ ul.chips button:hover { color: var(--neg); }
     $("p-table").tBodies[0].innerHTML = shown.map(function (r) {
       var p = r.p;
       var cls = function (v) { return v == null ? "" : v > 0 ? "up" : v < 0 ? "down" : ""; };
-      return '<tr><td class="rk">' + p.rank + '</td><td class="l name">' + esc(p.n) + "<small>" + esc(p.t || "") + "</small></td><td>" + p.exp + "</td><td>" + fmt(p.mpg, 1) +
+      return '<tr><td class="rk">' + p.rank + '</td><td class="l name">' + plink(p) + "<small>" + esc(p.t || "") + "</small></td><td>" + p.exp + "</td><td>" + fmt(p.mpg, 1) +
         '</td><td class="big">' + fmt(p.tot) + "</td><td>" + (p.lastRank == null ? "" : p.lastRank) + '</td><td class="' + cls(p.chg) + '">' + signed(p.chg) +
         "</td><td>" + (r.now == null ? "" : fmt(r.now) + ' <small style="color:var(--muted)">' + r.gp + " gp</small>") + '</td><td class="' + cls(r.gap) + '">' + signed(r.gap) + "</td>" +
         CATS.map(function (c, i) { return '<td class="cat" style="' + heat(p.z[i]) + '">' + fmt(p.z[i]) + "</td>"; }).join("") + "</tr>";
@@ -369,31 +447,32 @@ ul.chips button:hover { color: var(--neg); }
   }
 
   /* ---------- Trade ---------- */
-  var T = { src: "current", punt: "none", give: [], get: [] };
+  var T = { src: "current", punts: [], give: [], get: [] };
   function pool(src) { return D[src]; }
-  function tradeRow(p, src, vi, pi) {
-    if (src === "proj") return { z: p.z, value: zsum(p.z, pi) };
-    return { z: p.z, value: p.v ? p.v[vi] : zsum(p.z, pi) };
+  function tradeRow(p, src, ps) {
+    if (src === "proj") return { z: p.z, value: zsum(p.z, ps) };
+    var v = valueOf(p, ps);
+    return { z: p.z, value: v == null ? zsum(p.z, ps) : v };
   }
   function renderTrade() {
     var src = T.src, list = pool(src), byName = {};
     list.forEach(function (p) { byName[p.n.toLowerCase()] = p; });
     $("t-names").innerHTML = list.map(function (p) { return '<option value="' + esc(p.n) + '">'; }).join("");
-    var pi = PUNT_CAT[T.punt], vi = PUNTS.indexOf(T.punt);
+    var pts = T.punts;
     var unit = src === "proj" ? "z total" : "value";
     ["give", "get"].forEach(function (side) {
       var ps = T[side].map(function (n) { return byName[n.toLowerCase()]; });
       $("t-" + side + "-list").innerHTML = ps.length ? ps.map(function (p, i) {
         if (!p) return '<li><span>' + esc(T[side][i]) + ' <small>no data in this view</small></span><button type="button" data-side="' + side + '" data-i="' + i + '" aria-label="Remove">✕</button></li>';
-        var r = tradeRow(p, src, vi, pi);
-        return "<li><span><b>" + esc(p.n) + "</b> <small>" + esc(p.t || "") + " · " + unit + " " + fmt(r.value) + '</small></span><button type="button" data-side="' + side + '" data-i="' + i + '" aria-label="Remove ' + esc(p.n) + '">✕</button></li>';
+        var r = tradeRow(p, src, pts);
+        return "<li><span>" + plink(p) + " <small>" + esc(p.t || "") + " · " + unit + " " + fmt(r.value) + '</small></span><button type="button" data-side="' + side + '" data-i="' + i + '" aria-label="Remove ' + esc(p.n) + '">✕</button></li>';
       }).join("") : '<li class="empty" style="border:0;padding:0">No players yet.</li>';
     });
     var tot = function (side) {
       var z = [0, 0, 0, 0, 0, 0, 0, 0, 0], v = 0, n = 0;
       T[side].forEach(function (name) {
         var p = byName[name.toLowerCase()]; if (!p) return;
-        var r = tradeRow(p, src, vi, pi); n++;
+        var r = tradeRow(p, src, pts); n++;
         r.z.forEach(function (x, i) { z[i] += x || 0; }); v += r.value || 0;
       });
       return { z: z, v: v, n: n };
@@ -404,7 +483,7 @@ ul.chips button:hover { color: var(--neg); }
     var maxAbs = 0.5;
     CATS.forEach(function (c, i) { maxAbs = Math.max(maxAbs, Math.abs(r.z[i] - g.z[i])); });
     CATS.forEach(function (c, i) {
-      var d = r.z[i] - g.z[i], punted = i === pi;
+      var d = r.z[i] - g.z[i], punted = pts.indexOf(i) >= 0;
       if (!punted && (g.n || r.n)) { if (d > 0.15) wins++; else if (d < -0.15) losses++; }
       var w = Math.abs(d) / maxAbs * 50;
       var bar = '<span class="bar"><i style="' + (d >= 0 ? "left:50%" : "right:50%") + ";width:" + w.toFixed(1) + "%;background:var(" + (d >= 0 ? "--pos" : "--neg") + ')"></i></span>';
@@ -455,6 +534,186 @@ ul.chips button:hover { color: var(--neg); }
     }).join("");
   }
 
+  /* ---------- Player card ---------- */
+  var lastFocus = null, openId = null;
+
+  // This season's game logs: one shared file, loaded the first time a card opens
+  var GAMES = null, gamesLoading = false, gamesWaiters = [];
+  var GSTAT = "pts";
+  // How many recent games to show; phones start with the last 20 so bars stay readable
+  var GRANGE = window.innerWidth < 640 ? "20" : "all";
+  var GRANGES = [["10", "Last 10"], ["20", "Last 20"], ["all", "Season"]];
+  var GSTATS = [["pts", "PTS"], ["reb", "REB"], ["ast", "AST"], ["stl", "STL"], ["blk", "BLK"], ["fg3m", "3PM"], ["fg", "FG%"], ["ft", "FT%"], ["tov", "TO"], ["min", "MIN"]];
+  function loadGames(done) {
+    if (GAMES) { done(); return; }
+    gamesWaiters.push(done);
+    if (gamesLoading) return;
+    gamesLoading = true;
+    fetch("data/games.json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).then(function (raw) {
+      var G = raw.games, byId = {};
+      for (var i = 0; i < G.athlete_id.length; i++) {
+        (byId[G.athlete_id[i]] = byId[G.athlete_id[i]] || []).push({ date: G.date[i], team: G.team[i], opp: G.opponent[i], min: G.min[i],
+          pts: G.pts[i], reb: G.reb[i], ast: G.ast[i], stl: G.stl[i], blk: G.blk[i], fg3m: G.fg3m[i],
+          fgm: G.fgm[i], fga: G.fga[i], ftm: G.ftm[i], fta: G.fta[i], tov: G.tov[i] });
+      }
+      GAMES = byId;
+      gamesWaiters.splice(0).forEach(function (f) { f(); });
+    }).catch(function () {
+      gamesLoading = false; gamesWaiters = [];
+      var box = $("pm-games"); if (box) box.innerHTML = '<p class="gsum">The game logs did not load. Close the card and open it again to retry.</p>';
+    });
+  }
+  function gameVal(g, k) {
+    if (k === "fg") return g.fga ? 100 * g.fgm / g.fga : null;
+    if (k === "ft") return g.fta ? 100 * g.ftm / g.fta : null;
+    return g[k];
+  }
+  function avgOf(games, k) {
+    if (!games.length) return null;
+    if (k === "fg" || k === "ft") {
+      var m = k === "fg" ? "fgm" : "ftm", a = k === "fg" ? "fga" : "fta", sm = 0, sa = 0;
+      games.forEach(function (g) { sm += g[m]; sa += g[a]; });
+      return sa ? 100 * sm / sa : null;   // made / attempted, not the mean of game percentages
+    }
+    return games.reduce(function (t, g) { return t + g[k]; }, 0) / games.length;
+  }
+  function mdy(d) { var x = d.split("-"); return +x[1] + "/" + +x[2]; }
+  function renderGames(id) {
+    var box = $("pm-games"); if (!box) return;
+    var allGames = GAMES[id] || [];
+    if (!allGames.length) { box.innerHTML = '<p class="gsum">No games yet this season.</p>'; return; }
+    var games = GRANGE === "all" ? allGames : allGames.slice(-Number(GRANGE));
+    var lab = GSTATS.filter(function (s) { return s[0] === GSTAT; })[0][1];
+    var pct = GSTAT === "fg" || GSTAT === "ft";
+    var vals = games.map(function (g) { return gameVal(g, GSTAT); });
+    var avg = avgOf(games, GSTAT), seasonAvg = avgOf(allGames, GSTAT);
+    var real = vals.filter(function (v) { return v != null; });
+    // round the top of the axis to a tidy number so the middle gridline is a whole number too
+    var top = Math.max(1, Math.max.apply(null, real.concat([avg || 0])) * 1.1);
+    var st = top > 40 ? 20 : top > 10 ? 10 : top > 4 ? 4 : 2;
+    var hi = pct ? 100 : Math.ceil(top / st) * st;
+    var W = Math.round(Math.max(300, Math.min(940, (box.clientWidth || 940) - 24)));
+    var narrow = W < 600, H = narrow ? 190 : 230, L0 = 34, R0 = narrow ? 52 : 64, T0 = 18, B0 = 26, n = games.length;
+    var y = function (v) { return T0 + (1 - v / hi) * (H - T0 - B0); };
+    var sw = (W - L0 - R0) / n, bw = Math.max(2, Math.min(22, sw * 0.7));
+    var step = Math.max(1, Math.ceil(n / Math.max(3, Math.floor((W - L0 - R0) / 44))));   // about one date per 44 px
+    var g = "";
+    [0, hi / 2, hi].forEach(function (t) {
+      g += '<line x1="' + L0 + '" x2="' + (W - R0) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '" stroke="var(' + (t === 0 ? "--muted" : "--line") + ')"/>' +
+        '<text x="' + (L0 - 5) + '" y="' + (y(t) + 3.5).toFixed(1) + '" text-anchor="end" font-size="11" fill="var(--muted)">' + (Math.round(t * 10) / 10) + (pct ? "%" : "") + "</text>";
+    });
+    games.forEach(function (gm, k) {
+      var cx = L0 + sw * (k + 0.5), v = vals[k];
+      var tip = mdy(gm.date) + " vs " + gm.opp + ": " + gm.min + " min, " + gm.pts + " pts, " + gm.reb + " reb, " + gm.ast + " ast, " + gm.stl + " stl, " + gm.blk + " blk, " +
+        gm.fg3m + " 3pm, " + gm.fgm + "/" + gm.fga + " FG, " + gm.ftm + "/" + gm.fta + " FT, " + gm.tov + " to";
+      if (v == null) {
+        g += '<text x="' + cx.toFixed(1) + '" y="' + (y(0) - 4).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--muted)"><title>' + esc(tip) + " (no attempts)</title>–</text>";
+      } else {
+        var h = Math.max(1, y(0) - y(v));
+        g += '<rect class="gbar" x="' + (cx - bw / 2).toFixed(1) + '" y="' + y(v).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="var(' + (GSTAT === "tov" ? "--neg" : "--accent") + ')"><title>' + esc(tip) + "</title></rect>";
+        if (sw >= 18) g += '<text x="' + cx.toFixed(1) + '" y="' + (y(v) - 4).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">' + (pct ? Math.round(v) : v) + "</text>";
+      }
+      if (k % step === 0) g += '<text x="' + cx.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + mdy(gm.date) + "</text>";
+    });
+    if (avg != null) {
+      g += '<line x1="' + L0 + '" x2="' + (W - R0) + '" y1="' + y(avg).toFixed(1) + '" y2="' + y(avg).toFixed(1) + '" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>' +
+        '<text x="' + (W - R0 + 6) + '" y="' + (y(avg) + 4).toFixed(1) + '" font-size="11" font-weight="600" fill="var(--ink)">avg ' + avg.toFixed(1) + (pct ? "%" : "") + "</text>";
+    }
+    var f = function (v) { return v == null ? "–" : v.toFixed(1) + (pct ? "%" : ""); };
+    var shown = GRANGE === "all" || allGames.length <= games.length ? "All " + n + " games" : "Last " + n + " of " + allGames.length + " games";
+    box.innerHTML = '<div class="gctl"><div class="seg" id="pm-gstat">' + GSTATS.map(function (s) {
+        return '<button type="button" data-v="' + s[0] + '" aria-pressed="' + (s[0] === GSTAT) + '">' + s[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="seg" id="pm-grange">' + GRANGES.map(function (s) {
+        return '<button type="button" data-v="' + s[0] + '" aria-pressed="' + (s[0] === GRANGE) + '">' + s[1] + "</button>"; }).join("") + "</div></div>" +
+      '<p class="gsum">' + shown + " · " + lab + " average " + f(avg) +
+      (games.length < allGames.length ? " (season " + f(seasonAvg) + ")" : "") + " · hover or tap a bar for the full box score</p>" +
+      '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + lab + ' per game this season">' + g + "</svg>";
+    $("pm-gstat").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      GSTAT = b.dataset.v; renderGames(id);
+    });
+    $("pm-grange").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      GRANGE = b.dataset.v; renderGames(id);
+    });
+  }
+  function openPlayer(id, from) {
+    var bySeason = D.byId[id] || {}, proj = D.projById[id];
+    var seasons = D.order.slice().sort(function (a, b) { return a - b; });   // oldest to newest
+    var have = seasons.filter(function (y) { return bySeason[y]; });
+    var latest = have.length ? bySeason[have[have.length - 1]] : proj;
+    if (!latest) return;
+    var basis = R.basis, ps = R.punts;
+    var showProj = !!proj && basis === "z";
+    $("pm-title").textContent = latest.n;
+    $("pm-sub").textContent = [latest.t, latest.pos].filter(Boolean).join(" · ") + " · " + L.teams + " teams, " + L.roster + " roster spots · " +
+      (basis === "z" ? "per-game" : "per-48") + " z-scores · values with " + puntText(ps);
+
+    // season table
+    var rows = seasons.map(function (y) {
+      var p = bySeason[y];
+      if (!p) return "<tr><td class=\"l\">" + label(y) + '</td><td colspan="5" class="l" style="color:var(--muted)">Not enough games or minutes to qualify</td></tr>';
+      var v = valueOf(p, ps);
+      return '<tr><td class="l">' + label(y) + (y === D.cur ? " <small>in progress</small>" : "") + "</td><td class=\"l\">" + esc(p.t) + "</td><td>" + p.gp + "</td><td>" + fmt(p.mpg, 1) +
+        '</td><td class="big ' + (v > 0 ? "up" : v < 0 ? "down" : "") + '">' + fmt(v) + "</td><td>" + fmt(zsum(p[basis], ps)) + "</td></tr>";
+    }).join("");
+    if (proj) rows += '<tr><td class="l">' + label(D.cur) + ' <small>projection</small></td><td class="l">' + esc(proj.t || "") + "</td><td></td><td>" + fmt(proj.mpg, 1) +
+      '</td><td></td><td>' + fmt(zsum(proj.z, ps)) + "</td></tr>";
+    var table = '<div class="tablebox"><table><thead><tr><th class="l">Season</th><th class="l">Team</th><th>GP</th><th>MPG</th><th>Value</th><th>Z total</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+
+    // one shared y-scale for all nine panels, so categories can be compared
+    var vals = [];
+    seasons.forEach(function (y) { if (bySeason[y]) bySeason[y][basis].forEach(function (v) { if (v != null) vals.push(v); }); });
+    if (showProj) proj.z.forEach(function (v) { if (v != null) vals.push(v); });
+    var lo = Math.min(-1, Math.floor(Math.min.apply(null, vals.concat([0])))), hi = Math.max(1, Math.ceil(Math.max.apply(null, vals.concat([0]))));
+    var slots = seasons.map(function (y) { return { lab: label(y), v: bySeason[y] ? bySeason[y][basis] : null, proj: false }; });
+    if (showProj) slots.push({ lab: "Proj", v: proj.z, proj: true });
+
+    var panels = CATS.map(function (c, ci) {
+      var W = 300, H = 150, L0 = 28, R0 = 6, T0 = 14, B0 = 22;
+      var y = function (v) { return T0 + (hi - v) / (hi - lo) * (H - T0 - B0); };
+      var sw = (W - L0 - R0) / slots.length, bw = Math.min(30, sw * 0.62), y0 = y(0);
+      var g = "";
+      [lo, 0, hi].forEach(function (t) {
+        g += '<line x1="' + L0 + '" x2="' + (W - R0) + '" y1="' + y(t).toFixed(1) + '" y2="' + y(t).toFixed(1) + '" stroke="var(' + (t === 0 ? "--muted" : "--line") + ')" stroke-width="1"/>' +
+          '<text x="' + (L0 - 4) + '" y="' + (y(t) + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="var(--muted)">' + (t > 0 ? "+" : "") + t + "</text>";
+      });
+      slots.forEach(function (s, k) {
+        var cx = L0 + sw * (k + 0.5), v = s.v ? s.v[ci] : null;
+        g += '<text x="' + cx.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + s.lab + "</text>";
+        if (v == null) { g += '<text x="' + cx.toFixed(1) + '" y="' + (y0 - 4).toFixed(1) + '" text-anchor="middle" font-size="11" fill="var(--muted)">–</text>'; return; }
+        var top = Math.min(y(v), y0), h = Math.max(1, Math.abs(y(v) - y0)), col = v >= 0 ? "--pos" : "--neg";
+        g += s.proj
+          ? '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="none" stroke="var(' + col + ')" stroke-width="1.5" stroke-dasharray="3 2"/>'
+          : '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="var(' + col + ')" rx="1.5"/>';
+        var ty = v >= 0 ? Math.max(T0 - 3, y(v) - 3) : Math.min(H - B0 + 10, y(v) + 11);
+        g += '<text x="' + cx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">' + (v > 0 ? "+" : "") + v.toFixed(1) + "</text>";
+      });
+      var cur = bySeason[D.cur] ? bySeason[D.cur][basis][ci] : null;
+      return '<div class="mpanel' + (ps.indexOf(ci) >= 0 ? " punted" : "") + '"><div class="hd"><b>' + c + "</b><span>" + (ps.indexOf(ci) >= 0 ? "punted" : (cur == null ? "" : label(D.cur) + " " + (cur > 0 ? "+" : "") + cur.toFixed(2))) + "</span></div>" +
+        '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + c + ' z-score by season">' + g + "</svg></div>";
+    }).join("");
+
+    $("pm-body").innerHTML = "<h4>Season by season</h4>" + table +
+      "<h4>" + label(D.cur) + ' game by game</h4><div class="gbox" id="pm-games"><p class="gsum">Loading games…</p></div>' +
+      "<h4>Category z-scores</h4>" + '<div class="mgrid">' + panels + "</div>" +
+      '<p class="note">Bars are z-scores against the rosterable pool of each season: 0 is an average rostered player, +1 is one standard deviation better. Turnovers are flipped, so higher is better. ' +
+      (showProj ? "The dashed bar is the model's projection for " + label(D.cur) + ". " : "") +
+      (bySeason[D.cur] ? "The " + label(D.cur) + " bar uses " + bySeason[D.cur].gp + " games so far, so it can still move a lot." : "") + "</p>";
+    openId = id;
+    lastFocus = from || null;
+    $("pm").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("pm-close").focus();
+    loadGames(function () { if (openId === id) renderGames(id); });
+  }
+  function closePlayer() {
+    openId = null;
+    $("pm").hidden = true;
+    document.body.style.overflow = "";
+    if (lastFocus && document.body.contains(lastFocus)) lastFocus.focus();
+  }
+
   /* ---------- Routing ---------- */
   var VIEWS = ["rankings", "projections", "trade", "categories"];
   function route() {
@@ -484,7 +743,7 @@ ul.chips button:hover { color: var(--neg); }
       return '<option value="' + o[0] + '"' + (o[0] === T.src ? " selected" : "") + ">" + o[1] + "</option>"; }).join("");
     // open the analyzer with a worked example the first time
     if (!T.give.length && !T.get.length) {
-      var top = D.current.filter(function (p) { return p.v; }).slice().sort(function (a, b) { return b.v[0] - a.v[0]; });
+      var top = D.current.filter(function (p) { return p.k; }).slice().sort(function (a, b) { return valueOf(b, []) - valueOf(a, []); });
       if (top.length > 30) { T.give = [top[11].n]; T.get = [top[24].n, top[29].n]; }
     }
     renderRankings(); renderProjections(); renderTrade(); renderCategories();
@@ -518,9 +777,9 @@ ul.chips button:hover { color: var(--neg); }
     };
     $("g-teams").addEventListener("change", leagueChange);
     $("g-roster").addEventListener("change", leagueChange);
-    fillPunts($("r-punt")); fillPunts($("t-punt"));
+    puntBox("r-punt", R, renderRankings);
+    puntBox("t-punt", T, renderTrade);
     $("r-season").addEventListener("change", function (e) { R.season = +e.target.value; renderRankings(); });
-    $("r-punt").addEventListener("change", function (e) { R.punt = e.target.value; renderRankings(); });
     $("r-pos").addEventListener("change", function (e) { R.pos = e.target.value; renderRankings(); });
     $("r-gp").addEventListener("input", function (e) { R.gp = +e.target.value || 0; renderRankings(); });
     $("r-q").addEventListener("input", function (e) { R.q = e.target.value.trim().toLowerCase(); renderRankings(); });
@@ -531,7 +790,6 @@ ul.chips button:hover { color: var(--neg); }
     $("p-q").addEventListener("input", function (e) { P.q = e.target.value.trim().toLowerCase(); renderProjections(); });
     headerSort("p-table", P, renderProjections);
     $("t-src").addEventListener("change", function (e) { T.src = e.target.value; renderTrade(); });
-    $("t-punt").addEventListener("change", function (e) { T.punt = e.target.value; renderTrade(); });
     document.querySelectorAll("form.add").forEach(function (f) {
       f.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -540,9 +798,17 @@ ul.chips button:hover { color: var(--neg); }
       });
     });
     document.querySelector(".trade").addEventListener("click", function (e) {
-      var b = e.target.closest("ul.chips button"); if (!b) return;
+      var b = e.target.closest("ul.chips button[data-side]"); if (!b) return;
       T[b.dataset.side].splice(+b.dataset.i, 1); renderTrade();
     });
+    // player card
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest("button.plink"); if (!b || !D) return;
+      openPlayer(+b.dataset.id, b);
+    });
+    $("pm-close").addEventListener("click", closePlayer);
+    $("pm").addEventListener("click", function (e) { if (e.target === $("pm")) closePlayer(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("pm").hidden) closePlayer(); });
     window.addEventListener("hashchange", route); route();
   }
 
